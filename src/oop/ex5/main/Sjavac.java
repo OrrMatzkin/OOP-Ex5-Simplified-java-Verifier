@@ -18,7 +18,8 @@ public class Sjavac {
         Reader reader = new Reader(args[0]);
         reader.readFile();
         List<String> fileContent = reader.getFileContent();
-        FileProcessor f = new FileProcessor(fileContent);
-        f.process();
+//        FileProcessor f = new FileProcessor(fileContent);
+//        f.process();
+        Method method = new Method(fileContent);
     }
 }

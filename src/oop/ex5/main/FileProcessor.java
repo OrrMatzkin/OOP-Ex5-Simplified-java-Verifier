@@ -48,13 +48,15 @@ public class FileProcessor {
 
 
         for (String line: this.fileContent) {
+            int bracketsCounter = 0;
             if (line.equals("")) {
                 continue;
             }
-            if (!line.endsWith(";")) {
-                System.err.println(line + " ; is missing");
-                continue;
-            }
+            if (;;)
+//            if (!line.endsWith(";")) {
+//                System.err.println(line + " ; is missing");
+//                continue;
+//            }
 
             // trim the ';' from the end of line
             line = line.substring(0, line.length()-1);
@@ -83,7 +85,7 @@ public class FileProcessor {
         String type = splitted[0];
         String argument = splitted[1];
         // check argument's validity
-        checkArgument(argument);
+        //checkArgument(argument);
         if (splitted.length == 2) {
             // good!
         }
@@ -93,25 +95,12 @@ public class FileProcessor {
                 System.err.println("missing =");
                 return false;
             }
-            ch
+
         }
         return true;
     }
 
-    private boolean checkArgument (String argument) {
-        if (Pattern.compile("^\\d").matcher(argument).find()) {
-            System.err.println("starts with a digit");
-            return false;
-        } else if (Pattern.compile("^_{1}$").matcher(argument).find()) {
-            System.err.println("starts with a single underscore");
-            return false;
-        } else if (Pattern.compile("(?=\\D)(?=\\W)").matcher(argument).find()) {
-            System.err.println("contains illegal chars");
-            return false;
-        } else {
-            return true;
-        }
-    }
+
 
 
 
