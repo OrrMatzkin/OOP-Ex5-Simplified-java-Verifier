@@ -52,7 +52,7 @@ public class FileProcessor {
             if (line.equals("")) {
                 continue;
             }
-            if (;;)
+
 //            if (!line.endsWith(";")) {
 //                System.err.println(line + " ; is missing");
 //                continue;

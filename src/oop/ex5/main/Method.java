@@ -1,19 +1,25 @@
 package oop.ex5.main;
 
 import java.lang.invoke.VarHandle;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.concurrent.locks.Condition;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Method extends Scope {
+
+
+    private int argumentsNum;
     // List<Variable> givenArguments;
-    Method(List<String> scopeData) throws Exception {
+    private Scope outerScopes;
+
+    Method(List<String> scopeData, Scope outerScope) throws Exception {
         super(scopeData);
+        this.outerScopes = outerScope;
         String declaration = scopeData.get(0);
         declaration = declaration.substring(0, declaration.length() - 1);
         checkDeclaration(declaration);
+
     }
 
 
@@ -25,7 +31,6 @@ public class Method extends Scope {
         if (!matcher.group(1).equals("void")) throw new Exception();
         checkNameValidity(matcher.group(2).trim());
         checkArgumentsValidity(matcher.group(3));
-
     }
 
     private void checkNameValidity(String name) throws Exception {
@@ -43,21 +48,19 @@ public class Method extends Scope {
         }
     }
 
-
-    private void checkArgument (String argument) throws Exception {
-        System.out.println("argument: " + argument);
-
-        if (Pattern.compile("^\\d").matcher(argument).find()) {
-            System.err.println("starts with a digit");
-            throw new Exception();
-        } if (Pattern.compile("^_{1}$").matcher(argument).find()) {
-            System.err.println("starts with a single underscore");
-            throw new Exception();
-        } if (Pattern.compile("(?=\\D)(?=\\W)").matcher(argument).find()) {
-            System.err.println("contains illegal chars");
-            throw new Exception();
-        }
-    }
+//    private void checkArgument (String argument) throws Exception {
+//        System.out.println("argument: " + argument);
+//        if (Pattern.compile("^\\d").matcher(argument).find()) {
+//            System.err.println("starts with a digit");
+//            throw new Exception();
+//        } if (Pattern.compile("^_{1}$").matcher(argument).find()) {
+//            System.err.println("starts with a single underscore");
+//            throw new Exception();
+//        } if (Pattern.compile("(?=\\D)(?=\\W)").matcher(argument).find()) {
+//            System.err.println("contains illegal chars");
+//            throw new Exception();
+//        }
+//    }
 
     private void checkArgumentsValidity(String name) throws Exception {
         name = name.substring(1, name.length()-1);
@@ -67,6 +70,12 @@ public class Method extends Scope {
         for (String argument : arguments) {
             i++;
             System.out.println("arg" + i + ": " + argument);
+            // Variable variable = new Variable(name, true);
         }
     }
+
+
+
+
+
 }
