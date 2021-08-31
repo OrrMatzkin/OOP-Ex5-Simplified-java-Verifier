@@ -20,6 +20,6 @@ public class Sjavac {
         List<String> fileContent = reader.getFileContent();
 //        FileProcessor f = new FileProcessor(fileContent);
 //        f.process();
-        Method method = new Method(fileContent);
+        Method method = new Method(fileContent, null);
     }
 }

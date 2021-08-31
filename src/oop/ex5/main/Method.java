@@ -2,19 +2,24 @@ package oop.ex5.main;
 
 import java.lang.invoke.VarHandle;
 import java.util.*;
+import java.util.concurrent.locks.Condition;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Method extends Scope {
 
+
     private int argumentsNum;
     // List<Variable> givenArguments;
-    Method(List<String> scopeData) throws Exception {
-        super(scopeData);
+    private Scope outerScopes;
 
+    Method(List<String> scopeData, Scope outerScope) throws Exception {
+        super(scopeData);
+        this.outerScopes = outerScope;
         String declaration = scopeData.get(0);
         declaration = declaration.substring(0, declaration.length() - 1);
         checkDeclaration(declaration);
+
     }
 
 
@@ -26,7 +31,6 @@ public class Method extends Scope {
         if (!matcher.group(1).equals("void")) throw new Exception();
         checkNameValidity(matcher.group(2).trim());
         checkArgumentsValidity(matcher.group(3));
-
     }
 
     private void checkNameValidity(String name) throws Exception {
@@ -44,43 +48,19 @@ public class Method extends Scope {
         }
     }
 
-
-    private void checkArgument (String argument) throws Exception {
-        System.out.println("argument: " + argument);
-
-        if (Pattern.compile("^\\d").matcher(argument).find()) {
-            System.err.println("starts with a digit");
-            throw new Exception();
-        } if (Pattern.compile("^_{1}$").matcher(argument).find()) {
-            System.err.println("starts with a single underscore");
-            throw new Exception();
-        } if (Pattern.compile("(?=\\D)(?=\\W)").matcher(argument).find()) {
-            System.err.println("contains illegal chars");
-            throw new Exception();
-        }
-    }
-
-
-//    private void checkArgumentsValidityAUX(String argument) throws Exception {
-//        Set<String> possibleTypes;
-//        possibleTypes.add("int");
-//        possibleTypes.add("double");
-//        possibleTypes.add("boolean");
-//        possibleTypes.add("char");
-//        possibleTypes.add("String");
-//        String[] splitted = argument.split(" ");
-//        if (splitted.length == 1) {
-//            // in case the argument is missing a type
+//    private void checkArgument (String argument) throws Exception {
+//        System.out.println("argument: " + argument);
+//        if (Pattern.compile("^\\d").matcher(argument).find()) {
+//            System.err.println("starts with a digit");
 //            throw new Exception();
-//        } else if (splitted.length == 3) {
-//            if (!splitted[0].equals("final")) {
-//                throw new Exception();
-//            }
-//        } else if (splitted.length == 2) {
-//
+//        } if (Pattern.compile("^_{1}$").matcher(argument).find()) {
+//            System.err.println("starts with a single underscore");
+//            throw new Exception();
+//        } if (Pattern.compile("(?=\\D)(?=\\W)").matcher(argument).find()) {
+//            System.err.println("contains illegal chars");
+//            throw new Exception();
 //        }
 //    }
-
 
     private void checkArgumentsValidity(String name) throws Exception {
         name = name.substring(1, name.length()-1);
@@ -90,6 +70,12 @@ public class Method extends Scope {
         for (String argument : arguments) {
             i++;
             System.out.println("arg" + i + ": " + argument);
+            // Variable variable = new Variable(name, true);
         }
     }
+
+
+
+
+
 }
