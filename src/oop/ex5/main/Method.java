@@ -1,16 +1,17 @@
 package oop.ex5.main;
 
 import java.lang.invoke.VarHandle;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Method extends Scope {
+
+    private int argumentsNum;
     // List<Variable> givenArguments;
     Method(List<String> scopeData) throws Exception {
         super(scopeData);
+
         String declaration = scopeData.get(0);
         declaration = declaration.substring(0, declaration.length() - 1);
         checkDeclaration(declaration);
@@ -58,6 +59,28 @@ public class Method extends Scope {
             throw new Exception();
         }
     }
+
+
+//    private void checkArgumentsValidityAUX(String argument) throws Exception {
+//        Set<String> possibleTypes;
+//        possibleTypes.add("int");
+//        possibleTypes.add("double");
+//        possibleTypes.add("boolean");
+//        possibleTypes.add("char");
+//        possibleTypes.add("String");
+//        String[] splitted = argument.split(" ");
+//        if (splitted.length == 1) {
+//            // in case the argument is missing a type
+//            throw new Exception();
+//        } else if (splitted.length == 3) {
+//            if (!splitted[0].equals("final")) {
+//                throw new Exception();
+//            }
+//        } else if (splitted.length == 2) {
+//
+//        }
+//    }
+
 
     private void checkArgumentsValidity(String name) throws Exception {
         name = name.substring(1, name.length()-1);

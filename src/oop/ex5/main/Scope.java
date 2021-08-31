@@ -9,8 +9,8 @@ public class Scope {
     private int length;
 
     Scope(List<String> scopeData) {
+        this.length = scopeData.size();
         this.scopeData = scopeData;
     }
-
 
 }
