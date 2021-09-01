@@ -1,6 +1,7 @@
 package oop.ex5.main;
 
 
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -8,6 +9,8 @@ import java.util.regex.Pattern;
  * The Variable class.
  */
 public class Variable {
+
+    static HashMap<String, Variable> existingVariables = new HashMap<>();
 
     /**
      * A Type Enum.
@@ -130,6 +133,7 @@ public class Variable {
         this.isArgument = isArgument;
         this.isFinal = initializeLine.startsWith("final");
         updateParameters(isFinal ? initializeLine.replaceFirst("final", "") : initializeLine);
+        existingVariables.put(this.name, this);
     }
 
     /**
@@ -178,8 +182,8 @@ public class Variable {
      * @throws VariableError If the given name is invalid throws a VariableError.
      */
     private String extractName(String nameStr) throws VariableError {
-        //TODO: check if this name exists.
-        if (getVariable(nameStr) != null) throw new BadVariableNameAlreadyExists(nameStr);
+       // if the name is already taken
+        if (existingVariables.containsKey(nameStr)) throw new BadVariableNameAlreadyExists(nameStr);
         // if the name starts with a digit
         if (Pattern.compile("^\\d").matcher(nameStr).find()) {
             throw new BadVariableNameDigit(nameStr);
@@ -202,9 +206,8 @@ public class Variable {
      * @throws VariableError If the Variable data is invalid.
      */
     private Data<?> extractData(String dataStr) throws VariableError {
-        //TODO: check if the dataStr is name of another member
-        Variable exitingVariable = getVariable(dataStr);
-        if (exitingVariable != null){
+        if (existingVariables.containsKey(dataStr)){
+            Variable exitingVariable = existingVariables.get(dataStr);
             if (this.getType().equals(exitingVariable.getType())){
                 return exitingVariable.getDataObject();
             }
@@ -294,6 +297,14 @@ public class Variable {
      */
     public boolean isArgument() {
         return isArgument;
+    }
+
+    //TODO: call delete for all scope variable when the scope closes!!!!
+    /**
+     * Removes the Variable object from the existing variables hash set.
+     */
+    public void delete(){
+        existingVariables.remove(this.name);
     }
 }
 

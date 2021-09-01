@@ -61,6 +61,18 @@ class BadVariableNameSavedKeyword extends VariableError {
 }
 
 /**
+ * Bad Variable Name error, already exists.
+ */
+class BadVariableNameAlreadyExists extends VariableError {
+    /**
+     * The Error constructor.
+     */
+    public BadVariableNameAlreadyExists(String name) {
+        super("'Variable '" + name + "' is already defined in the scope.");
+    }
+}
+
+/**
  * Bad Variable Type error.
  */
 class BadVariableType extends VariableError {
@@ -94,6 +106,19 @@ class IllegalFinalDataChange extends VariableError {
      */
     public IllegalFinalDataChange(Variable variable) {
         super("Cannot assign a value to final variable '" + variable.getName() + "'.");
+    }
+}
+
+/**
+ * Trying to initialize a variable with a different type variable
+ */
+class IllegalVariableCasting extends VariableError {
+    /**
+     * The Error constructor.
+     */
+    public IllegalVariableCasting(Variable thisVariable, Variable otherVariable) {
+        super("Cannot assign a " + otherVariable.getType() + " member to a " +
+                thisVariable.getType() + " variable.");
     }
 }
 
