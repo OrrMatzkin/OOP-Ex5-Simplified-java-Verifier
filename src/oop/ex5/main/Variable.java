@@ -1,88 +1,166 @@
 package oop.ex5.main;
 
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The Variable class.
+ */
 public class Variable {
 
+    /**
+     * A Type Enum.
+     */
     private enum Type {
+        /**
+         * An int type.
+         */
         INT("^int$", "^(-\\d+)$|^(\\d+)$"),
+
+        /**
+         * A double type.
+         */
         DOUBLE("^double$", "^-(\\d*\\.\\d+)$|^-(\\d+\\.\\d*)$|^(\\d*\\.\\d+)$|" +
-                                              "^(\\d+\\.\\d*)$|^(-\\d+)$|^(\\d+)$"),
-        STRING("^String$", "^\"(.*)\"$)"),
-        CHAR("^char$","^\'(.)\'$"),
+                "^(\\d+\\.\\d*)$|^(-\\d+)$|^(\\d+)$"),
+
+        /**
+         * a String type.
+         */
+        STRING("^String$", "^\"(.*)\"$"),
+
+        /**
+         * A char type.
+         */
+        CHAR("^char$", "^'(.)'$"),
+
+        /**
+         * A boolean type.
+         */
         BOOLEAN("^boolean$", "^true$|^false$|^-(\\d*\\.\\d+)$|^-(\\d+\\.\\d*)$|" +
-                                                "^(\\d*\\.\\d+)$|^(\\d+\\.\\d*)$|^(-\\d+)$|^(\\d+)$");
+                "^(\\d*\\.\\d+)$|^(\\d+\\.\\d*)$|^(-\\d+)$|^(\\d+)$");
 
-        Pattern typePattern;
-        Pattern valuePattern;
+        /**
+         * Type regular expression for finding the Variable type,
+         * and a value regular expression for finding the value.
+         */
+        Pattern typePattern, valuePattern;
 
-        Type(String regexType, String regexValue){
+        /**
+         * the Constructor of the Type.
+         *
+         * @param regexType  Regular expression for finding the Variable type.
+         * @param regexValue Regular expression for finding the value of the variable.
+         */
+        Type(String regexType, String regexValue) {
             this.typePattern = Pattern.compile(regexType);
             this.valuePattern = Pattern.compile(regexValue);
         }
     }
 
+    /**
+     * A generic Data class for Variable.
+     *
+     * @param <T> The data type (int/double/String/char/boolean).
+     */
+    private static class Data<T> {
+
+        /**
+         * The value of the data.
+         */
+        private T value;
+
+        /**
+         * The constructor of the Data.
+         *
+         * @param value The value of the Data.
+         */
+        Data(T value) {
+            this.value = value;
+        }
+
+        /**
+         * Converts and returns the value of the data to String.
+         *
+         * @return The value of the Data as a String.
+         */
+        @Override
+        public String toString() {
+            return this.value.toString();
+        }
+    }
+
+    /**
+     * The name of the Variable.
+     */
     private String name;
 
-    private int dataInt;
+    /**
+     * The data of the variable.
+     */
+    private Data<?> data;
 
-    private double dataDouble;
-
-    private String dataString;
-
-    private char dataChar;
-
-    private boolean dataBoolean;
-
+    /**
+     * The Type of the Variable.
+     */
     private Type type;
 
-    private boolean initialized;
+    /**
+     * A boolean representing if the variable is initialized.
+     */
+    private boolean isInitialized;
 
+    /**
+     * A boolean representing if the variable is final.
+     */
     private final boolean isFinal;
 
+    /**
+     * A boolean representing if the variable is an argument of a method.
+     */
     private final boolean isArgument;
 
     /**
      * The Contractor of the Variable.
      *
-     * @param initializeLine The initializing line (Without any reserved keyword, for example: final, int..)
-     * @param isArgument        True if this variable should is, else false.
+     * @param initializeLine The initializing line (trimmed!)
+     * @param isArgument     True if this variable should is, else false.
      */
     Variable(String initializeLine, boolean isArgument) throws Exception {
         this.isArgument = isArgument;
-        this.isFinal = findFinal(initializeLine);
+        this.isFinal = initializeLine.startsWith("final");
         updateParameters(isFinal ? initializeLine.replaceFirst("final", "") : initializeLine);
     }
 
-    private boolean findFinal(String initializeLine) {
-        return initializeLine.startsWith("final");
-    }
-
+    /**
+     * extracts and updates the variable parameters (type, name and data) for the initialize line.
+     * @param initializeLine The initialize line without the final keyword.
+     * @throws Exception Exception (need to be changed).
+     */
     private void updateParameters(String initializeLine) throws Exception {
-        String[] splitted = initializeLine.split(" ");
-        //TODO: check if splitted has extra spaces
-        if (splitted.length >= 2) {     // without initialization only <Type> <Name>
-            this.type = extractType(splitted[0]);
-            this.name = extractName(splitted[1]);
-        } if (splitted.length == 4) {     // with initialization <Type> <Name> <=> <Data>
-            if (!splitted[2].equals("=")) {
-                System.err.println("No = sign");
-                throw new Exception();
-            } else {
-                updateData(splitted[3]);
-            }
-        } if (splitted.length != 2 && splitted.length !=4) throw new Exception();
+        Matcher fullMatcher = Pattern.compile("^(\\S+) +(\\S+) *= *(\\S+)$").matcher(initializeLine.trim());
+        Matcher partMatcher = Pattern.compile("^(\\S+) +(\\S+)$").matcher(initializeLine.trim());
+        // if this is variable is not going to be initialized yet (<Type> <Name>)
+        if (partMatcher.find()) {
+            this.type = extractType(partMatcher.group(1));
+            this.name = extractName(partMatcher.group(2));
+            this.isInitialized = false;
+        // with initialization (<Type> <Name> <=> <Data>)
+        } else if (fullMatcher.find()) {
+            this.type = extractType(fullMatcher.group(1));
+            this.name = extractName(fullMatcher.group(2));
+            this.data = extractData(fullMatcher.group(3));
+            this.isInitialized = true;
+        } else throw new Exception();
     }
-
 
     /**
      * Finds the Variable Type.
      * @param typeStr The String that should hold the variable type.
      * @return the Type of the Variable.
-     * @throws Exception If no type found.
+     * @throws VariableError If the given Type is invalid throws a VariableError.
      */
-    private Type extractType(String typeStr) throws Exception{
+    private Type extractType(String typeStr) throws VariableError {
         Matcher matcher;
         for (Type type : Type.values()) {
             matcher = type.typePattern.matcher(typeStr);
@@ -90,63 +168,114 @@ public class Variable {
                 return type;
             }
         }
-        System.err.println("Not a variable, invalid Type");
-        throw new Exception();
+        throw new BadVariableType(typeStr);
     }
 
     /**
-     * gets
-     * @param nameStr
-     * @return
-     * @throws Exception
+     * Finds the Variable name.
+     * @param nameStr The name String (from the initializing line).
+     * @return The name of the Variable.
+     * @throws VariableError If the given name is invalid throws a VariableError.
      */
-    private String extractName(String nameStr) throws Exception{
+    private String extractName(String nameStr) throws VariableError {
         // if the name starts with a digit
         if (Pattern.compile("^\\d").matcher(nameStr).find()) {
-            System.err.println("starts with a digit");
-            throw new Exception();
+            throw new BadVariableNameDigit(nameStr);
         // if the name is a only a single underscore
         } else if (Pattern.compile("^_$").matcher(nameStr).find()) {
-            System.err.println("name with only a single underscore");
-            throw new Exception();
+            throw new BadVariableNameUnderscore(nameStr);
         // if the name contains illegal characters (not letters or digits)
         } else if (Pattern.compile("(?=\\D)(?=\\W)").matcher(nameStr).find()) {
-            System.err.println("contains illegal chars");
-            throw new Exception();
+            throw new BadVariableNameIllegal(nameStr);
         // if the name is one of the reserved keyword
-        } else if (Pattern.compile("^(int|double|String|char|boolean)$").matcher(nameStr).find()){
-            System.err.println("You cant use a reserved keyword");
-            throw new Exception();
+        } else if (Pattern.compile("^(int|double|String|char|boolean)$").matcher(nameStr).find()) {
+            throw new BadVariableNameSavedKeyword(nameStr);
         } else return nameStr;
     }
 
-    public void updateData(String dataStr) throws Exception {
+    /**
+     * Finds the data of the Variable
+     * @param dataStr the data String.
+     * @return The matching Data class with the a data value.
+     * @throws VariableError If the Variable data is invalid.
+     */
+    private Data<?> extractData(String dataStr) throws VariableError {
         Matcher matcher = this.type.valuePattern.matcher(dataStr);
-        if (!matcher.find()) {
-            System.err.println("not a valid value for " + this.type.name());
-            throw new Exception();
-        }
+        if (!matcher.find()) throw new BadVariableData(this, dataStr);
         switch (this.type) {
             case INT:
-                this.dataInt = Integer.parseInt(dataStr);
-                break;
+                return new Data<>(Integer.parseInt(dataStr));
             case DOUBLE:
-                this.dataDouble = Double.parseDouble(dataStr);
-                break;
+                return new Data<>(Double.parseDouble(dataStr));
             case STRING:
-                this.dataString = matcher.group(1);
-                break;
+                return new Data<>(matcher.group(1));
             case CHAR:
-                this.dataChar = matcher.group(1).charAt(0);
-                break;
+                return new Data<>(matcher.group(1).charAt(0));
             case BOOLEAN:
-                //TODO: check if 0 is false.
                 if (dataStr.equals("true") || dataStr.equals("false"))
-                    this.dataBoolean = Boolean.parseBoolean(dataStr);
+                    return new Data<>(Boolean.parseBoolean(dataStr));
                 else
-                    this.dataBoolean = !(Double.parseDouble(dataStr) == 0);
-                break;
+                    return new Data<>(!(Double.parseDouble(dataStr) == 0)); //TODO: check if 0 is false.
         }
+        return null;
+    }
+
+    /**
+     * Sets the Variable data to the given data.
+     * @param dataStr The new Variable Data as a String.
+     * @throws VariableError If the Variable data is invalid.
+     */
+    public void setData(String dataStr) throws VariableError {
+        if (this.isFinal) throw new IllegalFinalDataChange(this);
+        else this.data = extractData(dataStr);
+    }
+
+    /**
+     * Gets the Variable name.
+     * @return The Variable name
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * Gets the Variable type.
+     * @return the Variable Type.
+     */
+    public String getType() {
+        return this.type.toString();
+    }
+
+    /**
+     * Gets the Variable data.
+     * @return the Variable Data.
+     */
+    public String getData() {
+        return this.data.toString();
+    }
+
+    /**
+     * Gets the initialized status.
+     * @return True if the Variable is initialized, else false.
+     */
+    public boolean isInitialized() {
+        return isInitialized;
+    }
+
+    /**
+     * Gets the final status.
+     * @return True if the Variable is final, else false.
+     */
+    public boolean isFinal() {
+        return isFinal;
+    }
+
+    /**
+     * Gets the argument status.
+     * @return True if the Variable is an arguments of a method, else false.
+     */
+    public boolean isArgument() {
+        return isArgument;
     }
 }
 
