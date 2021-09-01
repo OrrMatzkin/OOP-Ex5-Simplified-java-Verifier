@@ -178,6 +178,8 @@ public class Variable {
      * @throws VariableError If the given name is invalid throws a VariableError.
      */
     private String extractName(String nameStr) throws VariableError {
+        //TODO: check if this name exists.
+        if (getVariable(nameStr) != null) throw new BadVariableNameAlreadyExists(nameStr);
         // if the name starts with a digit
         if (Pattern.compile("^\\d").matcher(nameStr).find()) {
             throw new BadVariableNameDigit(nameStr);
@@ -200,6 +202,14 @@ public class Variable {
      * @throws VariableError If the Variable data is invalid.
      */
     private Data<?> extractData(String dataStr) throws VariableError {
+        //TODO: check if the dataStr is name of another member
+        Variable exitingVariable = getVariable(dataStr);
+        if (exitingVariable != null){
+            if (this.getType().equals(exitingVariable.getType())){
+                return exitingVariable.getDataObject();
+            }
+            else throw new IllegalVariableCasting(this, exitingVariable);
+        }
         Matcher matcher = this.type.valuePattern.matcher(dataStr);
         if (!matcher.find()) throw new BadVariableData(this, dataStr);
         switch (this.type) {
@@ -252,6 +262,14 @@ public class Variable {
      */
     public String getData() {
         return this.data.toString();
+    }
+
+    /**
+     * Gets the Variable Data object.
+     * @return the Variable Data object.
+     */
+    private Data<?> getDataObject(){
+        return this.data;
     }
 
     /**
