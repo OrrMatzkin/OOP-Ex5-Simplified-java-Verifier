@@ -10,7 +10,10 @@ import java.util.regex.Pattern;
  */
 public class Variable {
 
-    static HashMap<String, Variable> existingVariables = new HashMap<>();
+    /**
+     * All the current existing variables n the program sorted in a HashMap <name, Variable objects>.
+     */
+    public static HashMap<String, Variable> existingVariables = new HashMap<>();
 
     /**
      * A Type Enum.
@@ -71,7 +74,7 @@ public class Variable {
         /**
          * The value of the data.
          */
-        private T value;
+        private final T value;
 
         /**
          * The constructor of the Data.
@@ -125,41 +128,66 @@ public class Variable {
 
     /**
      * The Contractor of the Variable.
-     *
      * @param initializeLine The initializing line (trimmed!)
-     * @param isArgument     True if this variable should is, else false.
+     * @param isArgument True if this variable should is, else false.
+     * @throws VariableError When the Variable declaration goes wrong.
+     * @throws ClassNotFoundException When the initialize Line is only a new assignments.
      */
-    Variable(String initializeLine, boolean isArgument) throws Exception {
+    Variable(String initializeLine, boolean isArgument) throws VariableError, ClassNotFoundException {
         this.isArgument = isArgument;
         this.isFinal = initializeLine.startsWith("final");
-        updateParameters(isFinal ? initializeLine.replaceFirst("final", "") : initializeLine);
-        existingVariables.put(this.name, this);
+        // if this is only an assignment (not a new declared variable)
+        Matcher assignmentMatcher = Pattern.compile("^(\\S+) *= *(\\S+)$").matcher(initializeLine.trim());
+        if (assignmentMatcher.find()){
+            assignVariable(assignmentMatcher);
+//            throw new ClassNotFoundException();
+        }
+        // if this is a declaration (a new variable)
+        else {
+            updateParameters(isFinal ? initializeLine.replaceFirst("final", "")
+                    : initializeLine);
+            existingVariables.put(this.name, this);
+        }
+    }
+
+    /**
+     * Tries to assign an existing variable a new value.
+     * @param matcher The matcher of the assignments.
+     * @throws VariableError If the assignment is invalid.
+     */
+    private void assignVariable(Matcher matcher) throws VariableError {
+        Variable existing = existingVariables.get(matcher.group(1));
+        if (existing == null) throw new VariableDoesNotExist(matcher.group(1));
+        else existing.setData(matcher.group(2));
     }
 
     /**
      * extracts and updates the variable parameters (type, name and data) for the initialize line.
+     *
      * @param initializeLine The initialize line without the final keyword.
-     * @throws Exception Exception (need to be changed).
+     * @throws VariableError If updating the parameter is unsuccessful it throws a VariableError.
      */
-    private void updateParameters(String initializeLine) throws Exception {
+    private void updateParameters(String initializeLine) throws VariableError {
         Matcher fullMatcher = Pattern.compile("^(\\S+) +(\\S+) *= *(\\S+)$").matcher(initializeLine.trim());
         Matcher partMatcher = Pattern.compile("^(\\S+) +(\\S+)$").matcher(initializeLine.trim());
-        // if this is variable is not going to be initialized yet (<Type> <Name>)
-        if (partMatcher.find()) {
-            this.type = extractType(partMatcher.group(1));
-            this.name = extractName(partMatcher.group(2));
-            this.isInitialized = false;
         // with initialization (<Type> <Name> <=> <Data>)
-        } else if (fullMatcher.find()) {
+        if (fullMatcher.find()) {
             this.type = extractType(fullMatcher.group(1));
             this.name = extractName(fullMatcher.group(2));
             this.data = extractData(fullMatcher.group(3));
             this.isInitialized = true;
-        } else throw new Exception();
+        }
+        // if this is variable is not going to be initialized yet (<Type> <Name>)
+        else if (partMatcher.find()) {
+            this.type = extractType(partMatcher.group(1));
+            this.name = extractName(partMatcher.group(2));
+            this.isInitialized = false;
+        } else throw new BadVariableDeclaration();
     }
 
     /**
      * Finds the Variable Type.
+     *
      * @param typeStr The String that should hold the variable type.
      * @return the Type of the Variable.
      * @throws VariableError If the given Type is invalid throws a VariableError.
@@ -177,23 +205,24 @@ public class Variable {
 
     /**
      * Finds the Variable name.
+     *
      * @param nameStr The name String (from the initializing line).
      * @return The name of the Variable.
      * @throws VariableError If the given name is invalid throws a VariableError.
      */
     private String extractName(String nameStr) throws VariableError {
-       // if the name is already taken
+        // if the name is already taken
         if (existingVariables.containsKey(nameStr)) throw new BadVariableNameAlreadyExists(nameStr);
         // if the name starts with a digit
         if (Pattern.compile("^\\d").matcher(nameStr).find()) {
             throw new BadVariableNameDigit(nameStr);
-        // if the name is a only a single underscore
+            // if the name is a only a single underscore
         } else if (Pattern.compile("^_$").matcher(nameStr).find()) {
             throw new BadVariableNameUnderscore(nameStr);
-        // if the name contains illegal characters (not letters or digits)
+            // if the name contains illegal characters (not letters or digits)
         } else if (Pattern.compile("(?=\\D)(?=\\W)").matcher(nameStr).find()) {
             throw new BadVariableNameIllegal(nameStr);
-        // if the name is one of the reserved keyword
+            // if the name is one of the reserved keyword
         } else if (Pattern.compile("^(int|double|String|char|boolean)$").matcher(nameStr).find()) {
             throw new BadVariableNameSavedKeyword(nameStr);
         } else return nameStr;
@@ -201,17 +230,17 @@ public class Variable {
 
     /**
      * Finds the data of the Variable
+     *
      * @param dataStr the data String.
      * @return The matching Data class with the a data value.
      * @throws VariableError If the Variable data is invalid.
      */
     private Data<?> extractData(String dataStr) throws VariableError {
-        if (existingVariables.containsKey(dataStr)){
+        if (existingVariables.containsKey(dataStr)) {
             Variable exitingVariable = existingVariables.get(dataStr);
-            if (this.getType().equals(exitingVariable.getType())){
+            if (this.getType().equals(exitingVariable.getType())) {
                 return exitingVariable.getDataObject();
-            }
-            else throw new IllegalVariableCasting(this, exitingVariable);
+            } else throw new IllegalVariableCasting(this, exitingVariable);
         }
         Matcher matcher = this.type.valuePattern.matcher(dataStr);
         if (!matcher.find()) throw new BadVariableData(this, dataStr);
@@ -235,6 +264,7 @@ public class Variable {
 
     /**
      * Sets the Variable data to the given data.
+     *
      * @param dataStr The new Variable Data as a String.
      * @throws VariableError If the Variable data is invalid.
      */
@@ -245,6 +275,7 @@ public class Variable {
 
     /**
      * Gets the Variable name.
+     *
      * @return The Variable name
      */
     public String getName() {
@@ -253,6 +284,7 @@ public class Variable {
 
     /**
      * Gets the Variable type.
+     *
      * @return the Variable Type.
      */
     public String getType() {
@@ -261,6 +293,7 @@ public class Variable {
 
     /**
      * Gets the Variable data.
+     *
      * @return the Variable Data.
      */
     public String getData() {
@@ -269,14 +302,16 @@ public class Variable {
 
     /**
      * Gets the Variable Data object.
+     *
      * @return the Variable Data object.
      */
-    private Data<?> getDataObject(){
+    private Data<?> getDataObject() {
         return this.data;
     }
 
     /**
      * Gets the initialized status.
+     *
      * @return True if the Variable is initialized, else false.
      */
     public boolean isInitialized() {
@@ -285,6 +320,7 @@ public class Variable {
 
     /**
      * Gets the final status.
+     *
      * @return True if the Variable is final, else false.
      */
     public boolean isFinal() {
@@ -293,6 +329,7 @@ public class Variable {
 
     /**
      * Gets the argument status.
+     *
      * @return True if the Variable is an arguments of a method, else false.
      */
     public boolean isArgument() {
@@ -300,10 +337,11 @@ public class Variable {
     }
 
     //TODO: call delete for all scope variable when the scope closes!!!!
+
     /**
      * Removes the Variable object from the existing variables hash set.
      */
-    public void delete(){
+    public void delete() {
         existingVariables.remove(this.name);
     }
 }

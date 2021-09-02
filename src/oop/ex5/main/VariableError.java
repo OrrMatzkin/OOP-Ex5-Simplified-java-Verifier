@@ -15,6 +15,21 @@ public class VariableError extends Exception {
     }
 }
 
+/**
+ * Bad Variable declaration, used only when there is a general fault.
+ */
+class BadVariableDeclaration extends VariableError {
+    /**
+     * The Error constructor.
+     */
+    public BadVariableDeclaration() {
+        super("Declaration line is invalid");
+    }
+}
+
+/**
+ * Bad Variable Name error, starts with a digit.
+ */
 class BadVariableNameDigit extends VariableError {
     /**
      * The Error constructor.
@@ -119,6 +134,18 @@ class IllegalVariableCasting extends VariableError {
     public IllegalVariableCasting(Variable thisVariable, Variable otherVariable) {
         super("Cannot assign a " + otherVariable.getType() + " member to a " +
                 thisVariable.getType() + " variable.");
+    }
+}
+
+/**
+ * Variable does not exist.
+ */
+class VariableDoesNotExist extends VariableError {
+    /**
+     * The Error constructor.
+     */
+    public VariableDoesNotExist(String name) {
+        super("Cannot resolve symbol '" + name + "'");
     }
 }
 
