@@ -43,12 +43,21 @@ public class Scope {
      */
     protected int length;
 
+    /**
+     * the scope's name.
+     */
+    protected String name;
+
+
 
     /**
      * the Scope Class constructor.
      * @param scopeData the scope's code lines.
      */
-    Scope(List<String> scopeData, Scope outerScope) {
+    Scope(List<String> scopeData, Scope outerScope, String name) {
+        this.name = name;
+
+
         System.out.println("----------------");
         for (String line: scopeData) {
             System.out.println(line);
@@ -61,7 +70,6 @@ public class Scope {
 
 
 
-
     /**
      * the scope's data decoder.
      * this method iterates over the scope's data (each iteration scans an
@@ -71,7 +79,7 @@ public class Scope {
      * @throws Exception
      */
     protected void scan() throws Exception {
-        System.out.println("// CURRENTLY SCANNING SCOPE " + this.toString() + " //\n");
+        System.out.println("// CURRENTLY SCANNING SCOPE ***" + this.getName() + "*** //\n");
         int maxLineNum = this.scopeData.size();
         String line;
         for (int lineNum = 0; lineNum < maxLineNum; lineNum++) {
@@ -108,7 +116,7 @@ public class Scope {
         System.out.println("// line ends with '{' //");
 
         Pattern pattern1 = Pattern.compile("^ *(if|while)( *)*\\(.+\\) *$");
-        Pattern pattern2 = Pattern.compile("^ *void( *)\\w+ *\\(\\w* *.*\\) *$");
+        Pattern pattern2 = Pattern.compile("^ *void( *)(\\w+) *\\(\\w* *.*\\) *$");
 
         // matcher (without the "{")
         Matcher matcher1 = pattern1.matcher(line.substring(0, line.length() - 1));
@@ -117,14 +125,14 @@ public class Scope {
         // if/while statement
         if (matcher1.find()) {
             System.out.println("// creates new if/while scope //");
-            int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "ifWhile");
+            int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "ifWhile", line);
             System.out.println("// if/while scope's size is : "+ innerScopeSize + "//\n");
             return innerScopeSize;
         }
         // a method declaration statement
         else if (matcher2.find()) {
             System.out.println("// creates new method scope //");
-            int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "method");
+            int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "method", matcher2.group(2));
             System.out.println("// method's size is : "+ innerScopeSize + "//\n");
             return innerScopeSize;
         }
@@ -147,7 +155,7 @@ public class Scope {
      * @return the new scope's size (the number of lines in it).
      * @throws Exception
      */
-    protected int scopeCreationAUX(int lineNum, int maxLineNum, String type) throws Exception {
+    protected int scopeCreationAUX(int lineNum, int maxLineNum, String type, String name) throws Exception {
         int innerScopeSize = findInnerScopeSize(lineNum, maxLineNum);
         if (innerScopeSize == 0) {
             System.out.println("// new scope's size is 0 //");
@@ -159,11 +167,11 @@ public class Scope {
             innerScopeData.add(this.scopeData.get(i));
         }
         if (type.equals("method")) {
-            Method method = new Method(innerScopeData, this);
+            Method method = new Method(innerScopeData, this, name);
             this.innerScopes.add(method);
         }
         else {
-            Scondition scondition = new Scondition(innerScopeData, this);
+            Scondition scondition = new Scondition(innerScopeData, this, name);
             this.innerScopes.add(scondition);
         }
         return innerScopeSize;
@@ -179,15 +187,38 @@ public class Scope {
     protected void declarationOrAssigment(String line) throws Exception {
         if (isDeclaration(line)) {
             System.out.println("// creates new variable //");
-            Variable variable = new Variable(line.trim().substring(0, line.length() - 1), false);
-            this.variables.add(variable);
-            printVariable(variable);
+            line = line.substring(0,line.length()-1).trim(); // gets rid of the ;
+            String configStr = "";
+            String[] allWords = line.split(" ");
+            if (allWords.length >= 2) {
+                configStr += allWords[0] + " ";
+                if (allWords[0].equals("final"))
+                    configStr += allWords[1] + " ";
+            }
+            line = line.replaceAll(configStr, "");
+            String[] variablesStr = line.split(",");
+            for (String variableStr: variablesStr) {
+                this.variables.add(new Variable(configStr + variableStr.trim(), false));
+            }
+        }
+        else if (isPossibleCall(line)) {
+            System.out.println("// added a new possible call //");
+            CallsHandler.addCall(line);
         }
         else {
             System.out.println("// checking for possible value assigment //");
             checkPossibleAssigment(line.substring(0, line.length() - 1));
         }
     }
+
+    public boolean isPossibleCall(String line) {
+        Pattern pattern = Pattern.compile(" *([a-zA-Z0-9_]+) *(\\(.*\\)) *");
+        // removing the '}'
+        Matcher matcher = pattern.matcher(line.substring(0, line.length()-1));
+        return matcher.find();
+    }
+
+
 
     /**
      * this method checks if the given line starts with one of the s-Java's reserved
@@ -295,6 +326,6 @@ public class Scope {
     }
 
     public String getName() {
-        return this.scopeData.get(0);
+        return this.name;
     }
 }
