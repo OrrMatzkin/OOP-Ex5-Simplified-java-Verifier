@@ -27,6 +27,9 @@ public class Scondition extends Scope {
         this.scopeData.remove(0);
         extractCondition();
         if (!this.scopeData.isEmpty()) scan();
+        for (Variable variable: this.variables) {
+            variable.delete();
+        }
     }
 
     /**

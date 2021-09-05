@@ -1,3 +1,14 @@
-void A   (final int a, int b) {
+String a = "orr";
+if (a) {
 
 }
+
+a(1,2);
+
+
+true
+false
+a (int)
+b (double)
+8
+0.2
