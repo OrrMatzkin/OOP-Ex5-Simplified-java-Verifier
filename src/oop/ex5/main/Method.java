@@ -9,6 +9,9 @@ import java.util.regex.Pattern;
  */
 public class Method extends Scope {
 
+    public static HashMap<String, Method> allMethods = new HashMap<>();
+
+
     /**
      * a list of all given arguments for the method (can be empty).
      */
@@ -27,8 +30,8 @@ public class Method extends Scope {
      *                   called.
      * @throws Exception
      */
-    Method(List<String> scopeData, Scope outerScope) throws Exception {
-        super(scopeData, outerScope);
+    Method(List<String> scopeData, Scope outerScope, String name) throws Exception {
+        super(scopeData, outerScope, name);
         this.declaration = this.scopeData.get(0);
         // in order to avoid an infinite loop while scanning the scope's
         // data, we have to remove it's first line (the declaration of the scope)
@@ -39,7 +42,7 @@ public class Method extends Scope {
         for (Variable variable: this.variables) {
             variable.delete();
         }
-
+        allMethods.put(name, this);
     }
 
     /**

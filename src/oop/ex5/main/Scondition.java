@@ -19,8 +19,8 @@ public class Scondition extends Scope {
      *      *            called.
      * @throws Exception
      */
-    Scondition(List<String> scopeData, Scope outerScope) throws Exception {
-        super(scopeData,outerScope);
+    Scondition(List<String> scopeData, Scope outerScope, String name) throws Exception {
+        super(scopeData,outerScope, name);
         this.declaration = scopeData.get(0);
         // in order to avoid an infinite loop while scanning the scope's
         // data, we have to remove it's first line (the declaration of the scope)

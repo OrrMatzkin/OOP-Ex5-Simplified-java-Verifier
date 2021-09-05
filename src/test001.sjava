@@ -1,14 +1,7 @@
-String a = "orr";
-if (a) {
+int a, b = 5, c;
 
+aviram(5);
+
+void aviram(int k) {
+int a = 9;
 }
-
-a(1,2);
-
-
-true
-false
-a (int)
-b (double)
-8
-0.2
