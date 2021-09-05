@@ -48,11 +48,56 @@ public class Scondition extends Scope {
 
     protected void checkConditionValidity() {
         String condition = extractCondition();
-
     }
 
     protected boolean checkBooleanReservedWord(String condition) {
         return condition.equals("true") || condition.equals("false");
+    }
+
+    protected boolean checkVariableType(String variable) throws Exception {
+        if (Variable.existingVariables.containsKey(variable)) {
+            return  (Variable.existingVariables.get(variable).getType().equals("INT") ||
+            Variable.existingVariables.get(variable).getType().equals("FLOAT"));
+        }
+        System.out.println("// variable not found //");
+        throw new Exception();
+    }
+
+    protected boolean checkStringCondition(String condition) throws Exception {
+        Variable intVar = new Variable("int check_int", false, null);
+        Variable doubleVar = new Variable("double check_double", false, null);
+        Variable booleanVar = new Variable("boolean check_boolean", false, null);
+        boolean[] checkArr = {true, true, true};
+        try {
+            intVar.setData(condition);
+        }
+        catch (Exception e) {
+            checkArr[0] = false;
+        }
+        try {
+            doubleVar.setData(condition);
+        }
+        catch (Exception e) {
+            checkArr[1] = false;
+        }
+        try {
+            booleanVar.setData(condition);
+        }
+        catch (Exception e) {
+            checkArr[2] = false;
+        }
+        for (boolean bool: checkArr) {
+            if (bool) {
+                Variable.existingVariables.remove("int check_int");
+                Variable.existingVariables.remove("double check_double");
+                Variable.existingVariables.remove("boolean check_boolean");
+                return true;
+            }
+        }
+        Variable.existingVariables.remove("int check_int");
+        Variable.existingVariables.remove("double check_double");
+        Variable.existingVariables.remove("boolean check_boolean");
+        return false;
     }
 
 

@@ -32,7 +32,7 @@ class BadMethodNameDigit extends MethodError {
      * The Error constructor.
      */
     public BadMethodNameDigit(String name) {
-        super("'" + name + "' is an invalid Method Name, Can't start with a digit.");
+        super("'" + name + "' is an invalid Method Name, can't start with a digit.");
     }
 }
 
