@@ -1,6 +1,5 @@
 package oop.ex5.main;
 
-
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -133,14 +132,13 @@ public class Variable {
      * @throws VariableError When the Variable declaration goes wrong.
      * @throws ClassNotFoundException When the initialize Line is only a new assignments.
      */
-    Variable(String initializeLine, boolean isArgument) throws VariableError, ClassNotFoundException {
+    public Variable(String initializeLine, boolean isArgument) throws VariableError, ClassNotFoundException {
         this.isArgument = isArgument;
         this.isFinal = initializeLine.startsWith("final");
         // if this is only an assignment (not a new declared variable)
         Matcher assignmentMatcher = Pattern.compile("^(\\S+) *= *(\\S+)$").matcher(initializeLine.trim());
         if (assignmentMatcher.find()){
             assignVariable(assignmentMatcher);
-//            throw new ClassNotFoundException();
         }
         // if this is a declaration (a new variable)
         else {
