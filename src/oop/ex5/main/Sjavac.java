@@ -18,8 +18,15 @@ public class Sjavac {
         Reader reader = new Reader(args[0]);
         reader.readFile();
         List<String> fileContent = reader.getFileContent();
+        // System.out.println(fileContent);
 //        FileProcessor f = new FileProcessor(fileContent);
 //        f.process();
-        Method method = new Method(fileContent, null);
+//        Method method = new Method(fileContent, null);
+        Scope scope = new Scope(fileContent, null);
+        scope.scan();
     }
+
+
 }
+
+

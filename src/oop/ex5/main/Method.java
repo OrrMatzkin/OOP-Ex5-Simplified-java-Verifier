@@ -6,44 +6,106 @@ import java.util.concurrent.locks.Condition;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * this class represents a single method scope.
+ */
 public class Method extends Scope {
 
+    /**
+     * a list of all given arguments for the method (can be empty).
+     */
+    List<String> givenArguments = new ArrayList<>();
 
-    private int argumentsNum;
-    // List<Variable> givenArguments;
-    private Scope outerScopes;
+    /**
+     * a String which holds the first line of the method (the method's
+     * declaration line).
+     */
+    protected String declaration;
 
+    /**
+     * the Method Class constructor.
+     * @param scopeData the scope's code lines.
+     * @param outerScope a scope instance from which this constructor was
+     *                   called.
+     * @throws Exception
+     */
     Method(List<String> scopeData, Scope outerScope) throws Exception {
-        super(scopeData);
-        this.outerScopes = outerScope;
-        String declaration = scopeData.get(0);
-        declaration = declaration.substring(0, declaration.length() - 1);
-        checkDeclaration(declaration);
-
+        super(scopeData, outerScope);
+        this.declaration = this.scopeData.get(0);
+        // in order to avoid an infinite loop while scanning the scope's
+        // data, we have to remove it's first line (the declaration of the scope)
+        this.scopeData.remove(0);
+        checkNameValidity();
+        processArguments();
+        if (!this.scopeData.isEmpty()) scan();
     }
 
-
-    protected void checkDeclaration(String declaration) throws Exception {
-        // String[] splitted = declaration.trim().split("\\s+");
-        Pattern pattern = Pattern.compile("^ *(void) *([^ ].+) *(\\(.*\\)) *");
-        Matcher matcher = pattern.matcher(declaration);
-        if (!matcher.find()) throw new Exception();
-        if (!matcher.group(1).equals("void")) throw new Exception();
-        checkNameValidity(matcher.group(2).trim());
-        checkArgumentsValidity(matcher.group(3));
+    /**
+     * this method returns 2 kinds of information about the method (corresponding
+     * to a given String): the method's name, or the method's arguments - both
+     * in a String form.
+     * @param kind the kind of information needed
+     * @return a String which holds the method's name or the method's arguments.
+     */
+    private String getInfo(String kind) {
+        Pattern pattern = Pattern.compile("^ *void( *)(\\w+) *(\\(\\w* *.*\\)) *$");
+        Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
+        matcher.find();
+        switch (kind) {
+            case "name":
+                return matcher.group(2);
+            case "arguments":
+                return matcher.group(3);
+            default:
+                return null;
+        }
     }
 
-    private void checkNameValidity(String name) throws Exception {
-        System.out.println("name1: " + name);
+    /**
+     * this method decomposes the arguments String into individual
+     * arguments.
+     * @throws Exception
+     */
+    private void processArguments() throws Exception{
+        String arguments = getInfo("arguments");
+        arguments = arguments.substring(1, arguments.length()-1).trim();
+        String[] splitted = arguments.split(",");
+        System.out.println(arguments);
+        for (String argument: splitted) {
+            if (argument.equals("")) continue;
+            System.out.println("// checking argument " + argument.trim()+ " //");
+            checkArgumentValidity(argument.trim());
+        }
+    }
 
+    /**
+     * this method checks if the given argument is a valid s-Java argument.
+     * @param argument the argument to be checked.
+     * @throws Exception
+     */
+    private void checkArgumentValidity(String argument) throws Exception {
+        if (isDeclaration(argument)) this.givenArguments.add(argument);
+        else {
+            System.out.println("// invalid given argument //\n");
+            throw new Exception();
+        }
+    }
+
+    /**
+     * this method checks if the name of the current method is an s-Java
+     * valid method name.
+     * @throws Exception
+     */
+    private void checkNameValidity() throws Exception {
+        String name = getInfo("name");
         if (Pattern.compile("^\\d").matcher(name).find()) {
-            System.err.println("starts with a digit");
+            System.err.println("// method's starts with a digit //");
             throw new Exception();
         } else if (Pattern.compile("^_").matcher(name).find()) {
-            System.err.println("starts with a single underscore");
+            System.err.println("// method's starts with a single underscore //");
             throw new Exception();
         } else if (Pattern.compile("(?=\\D)(?=\\W)").matcher(name).find()) {
-            System.err.println("contains illegal chars");
+            System.err.println("// method's contains illegal chars //");
             throw new Exception();
         }
     }
@@ -61,20 +123,6 @@ public class Method extends Scope {
 //            throw new Exception();
 //        }
 //    }
-
-    private void checkArgumentsValidity(String name) throws Exception {
-        name = name.substring(1, name.length()-1);
-        System.out.println("arguments: " + name);
-        String[] arguments = name.split(",");
-        int i = 0;
-        for (String argument : arguments) {
-            i++;
-            System.out.println("arg" + i + ": " + argument);
-            // Variable variable = new Variable(name, true);
-        }
-    }
-
-
 
 
 
