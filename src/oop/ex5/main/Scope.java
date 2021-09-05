@@ -72,14 +72,14 @@ public class Scope {
         int maxLineNum = this.scopeData.size();
         String line;
         for (int lineNum = 0; lineNum < maxLineNum; lineNum++) {
-
+            System.out.println("------- " + lineNum + " -------");
             line = this.scopeData.get(lineNum);
 
             // in case of a declaration or assigment
             if (line.endsWith(";")) declarationOrAssigment(line);
 
             // in case of a new scope creation
-            else if (line.endsWith("{")) lineNum += scopeCreation(line, lineNum, maxLineNum);
+            else if (line.endsWith("{")) lineNum += scopeCreation(line, lineNum, maxLineNum) -1;
 
             // in case the current line is empty
             else if (line.trim().isEmpty()) continue;
