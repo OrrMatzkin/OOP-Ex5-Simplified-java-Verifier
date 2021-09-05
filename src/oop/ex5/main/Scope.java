@@ -1,6 +1,8 @@
 package oop.ex5.main;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,6 +17,11 @@ import java.util.regex.Pattern;
  * condition (if/while) defined scope.
  */
 public class Scope {
+
+    /**
+     * a list of all given arguments for the method (can be empty).
+     */
+    protected LinkedHashMap<String, Variable> arguments = new LinkedHashMap<>();
 
     /**
      * the scope's data. each line is preserved in a single
@@ -34,9 +41,9 @@ public class Scope {
 
 
     /**
-     * a list of the scope's variables.
+     * a map of the scope's variables.
      */
-    protected List<Variable> variables = new ArrayList<>();
+    protected HashMap<String, Variable>  variables = new HashMap<>();
 
     /**
      * the scope's length (number of code lines).
@@ -113,8 +120,8 @@ public class Scope {
     protected int scopeCreation(String line, int lineNum, int maxLineNum) throws Exception{
         System.out.println("// line ends with '{' //");
 
-        Pattern pattern1 = Pattern.compile("^ *(if|while)( *)*\\(.+\\) *$");
-        Pattern pattern2 = Pattern.compile("^ *void( *)(\\w+) *\\(\\w* *.*\\) *$");
+        Pattern pattern1 = Pattern.compile("^\\s*(if|while)( *)*\\(.+\\) *$");
+        Pattern pattern2 = Pattern.compile("^\\s*void( *)(\\w+) *\\(\\w* *.*\\) *$");
 
         // matcher (without the "{")
         Matcher matcher1 = pattern1.matcher(line.substring(0, line.length() - 1));
@@ -139,6 +146,7 @@ public class Scope {
         else {
             System.out.println("// invalid method/if/else scope declaration //");
             System.out.println("// problem in line: " + lineNum);
+            System.out.println(line);
             throw new Exception();
         }
     }
@@ -193,10 +201,10 @@ public class Scope {
                 if (allWords[0].equals("final"))
                     configStr += allWords[1] + " ";
             }
-            line = line.replaceAll(configStr, "");
+            line = line.replaceFirst(configStr, "");
             String[] variablesStr = line.split(",");
             for (String variableStr: variablesStr) {
-                this.variables.add(new Variable(configStr + variableStr.trim(), false, this));
+                this.variables.put(variableStr.trim(), new Variable(configStr + variableStr.trim(), false, this));
             }
         }
         else if (isPossibleCall(line)) {

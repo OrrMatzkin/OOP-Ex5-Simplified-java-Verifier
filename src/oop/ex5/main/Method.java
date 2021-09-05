@@ -12,10 +12,6 @@ public class Method extends Scope {
     public static HashMap<String, Method> allMethods = new HashMap<>();
 
 
-    /**
-     * a list of all given arguments for the method (can be empty).
-     */
-    List<Variable> givenArguments = new ArrayList<>();
 
     /**
      * a String which holds the first line of the method (the method's
@@ -39,8 +35,13 @@ public class Method extends Scope {
         checkNameValidity();
         processArguments();
         if (!this.scopeData.isEmpty()) scan();
-        for (Variable variable: this.variables) {
-            variable.delete();
+        for (Variable variable: this.variables.values()) {
+            if (!variable.isArgument())
+                variable.delete();
+        }
+        if (allMethods.containsKey(this.name)) {
+            System.out.println("// already existing method name //");
+            throw new Exception();
         }
         allMethods.put(name, this);
     }
@@ -79,7 +80,8 @@ public class Method extends Scope {
         for (String argument: splitted) {
             if (argument.equals("")) continue;
             System.out.println("// checking argument " + argument.trim()+ " //");
-            this.givenArguments.add(new Variable(argument.trim(), true, this));
+            Variable variable =  new Variable(argument.trim(), true, this);
+            this.arguments.put(variable.getName(), variable);
         }
     }
 

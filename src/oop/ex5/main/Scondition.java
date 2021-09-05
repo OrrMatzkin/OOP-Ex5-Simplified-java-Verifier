@@ -27,9 +27,10 @@ public class Scondition extends Scope {
         this.scopeData.remove(0);
         extractCondition();
         if (!this.scopeData.isEmpty()) scan();
-        for (Variable variable: this.variables) {
+        for (Variable variable: this.variables.values()) {
             variable.delete();
         }
+        checkConditionValidity();
     }
 
     /**
@@ -46,8 +47,12 @@ public class Scondition extends Scope {
         return condition;
     }
 
-    protected void checkConditionValidity() {
-        String condition = extractCondition();
+    protected void checkConditionValidity() throws Exception {
+        String condition = extractCondition().trim();
+        if (checkBooleanReservedWord(condition) || checkStringCondition(condition)
+        || checkVariableType(condition)) return;
+        System.out.println("// wrong if/while condition //");
+        throw new Exception();
     }
 
     protected boolean checkBooleanReservedWord(String condition) {
@@ -56,47 +61,47 @@ public class Scondition extends Scope {
 
     protected boolean checkVariableType(String variable) throws Exception {
         if (Variable.existingVariables.containsKey(variable)) {
-            return  (Variable.existingVariables.get(variable).getType().equals("INT") ||
-            Variable.existingVariables.get(variable).getType().equals("FLOAT"));
+            if (Variable.existingVariables.get(variable).isInitialized()) {
+                return (Variable.existingVariables.get(variable).getType().equals("INT") ||
+                        Variable.existingVariables.get(variable).getType().equals("FLOAT"));
+            }
         }
         System.out.println("// variable not found //");
         throw new Exception();
     }
 
     protected boolean checkStringCondition(String condition) throws Exception {
-        Variable intVar = new Variable("int check_int", false, null);
-        Variable doubleVar = new Variable("double check_double", false, null);
-        Variable booleanVar = new Variable("boolean check_boolean", false, null);
+        Variable intVar = new Variable("int check_int", false, this);
+        Variable doubleVar = new Variable("double check_double", false, this);
+        Variable booleanVar = new Variable("boolean check_boolean", false, this);
         boolean[] checkArr = {true, true, true};
         try {
-            intVar.setData(condition);
+            intVar.setData(condition, false);
         }
         catch (Exception e) {
             checkArr[0] = false;
         }
         try {
-            doubleVar.setData(condition);
+            doubleVar.setData(condition, false);
         }
         catch (Exception e) {
             checkArr[1] = false;
         }
         try {
-            booleanVar.setData(condition);
+            booleanVar.setData(condition,false);
         }
         catch (Exception e) {
             checkArr[2] = false;
         }
-        for (boolean bool: checkArr) {
-            if (bool) {
-                Variable.existingVariables.remove("int check_int");
-                Variable.existingVariables.remove("double check_double");
-                Variable.existingVariables.remove("boolean check_boolean");
-                return true;
-            }
-        }
+
         Variable.existingVariables.remove("int check_int");
         Variable.existingVariables.remove("double check_double");
         Variable.existingVariables.remove("boolean check_boolean");
+
+        for (boolean bool: checkArr) {
+            if (bool) return true;
+        }
+
         return false;
     }
 

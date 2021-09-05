@@ -74,18 +74,36 @@ public class CallsHandler {
     }
 
     public void checkPossibleArguments(Method scope, String arguments) throws Exception{
-        String[] splitted = arguments.split(",");
 
-        if (splitted.length != scope.givenArguments.size()) {
+        String[] splitted = arguments.split(",");
+        if (splitted[0].equals("") && scope.arguments.size() == 0) {
+            return;
+        }
+
+        if (splitted.length != scope.arguments.size()) {
             System.out.println("// incorrect arguments num //");
             throw new Exception();
         }
+
+
+        List<Variable> orderdArguments = new ArrayList<>(scope.arguments.values());
         for (int i = 0; i < splitted.length; i++) {
-            if (!scope.givenArguments.get(i).isInitialized()) {
-                System.out.println("// variable not initialized //");
-                throw new Exception();
-            }
-            scope.givenArguments.get(i).setData(splitted[i].trim());
+
+//            if (Variable.existingVariables.containsKey(splitted[i])) {
+//                if (!Variable.existingVariables.get(splitted[i]).isInitialized()) {
+//                    System.out.println("// variable not initialized in scope: " + scope.getName() + "//");
+//                    throw new Exception();
+//                }
+//                else
+                orderdArguments.get(i).setData(splitted[i].trim(), true);
+
+//            else {
+//                System.out.println("// variable not exist " + splitted[i] + "//");
+//                throw new Exception();
+//            }
+
+
+//            scope.givenArguments.get(i).setData(splitted[i].trim());
         }
     }
 

@@ -1,5 +1,6 @@
 package oop.ex5.main;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,6 +15,10 @@ public class Variable {
      */
     public static HashMap<String, Variable> existingVariables = new HashMap<>();
 
+    /**
+     * All the current existing arguments in the program sorted in a HashMap <name, Variable objects>.
+     */
+    public static HashMap<String, Variable> existingArguments = new HashMap<>();
     /**
      * A Type Enum.
      */
@@ -150,7 +155,8 @@ public class Variable {
         else {
             updateParameters(isFinal ? initializeLine.replaceFirst("final", "")
                     : initializeLine);
-            existingVariables.put(this.name, this);
+            if (this.isArgument) existingArguments.put(this.name, this);
+            else existingVariables.put(this.name, this);
         }
     }
 
@@ -162,9 +168,13 @@ public class Variable {
     private void assignVariable(Matcher matcher) throws VariableError {
         Scope curScope = this.scope;
         while (curScope != null){
-            if (curScope.variables.contains(existingVariables.get(matcher.group(1)))){
-                existingVariables.get(matcher.group(1)).setData(matcher.group(2));
-                break;
+            if (curScope.arguments.containsKey(matcher.group(1))){
+                curScope.arguments.get(matcher.group(1)).setData(matcher.group(2), false);
+                return;
+            }
+            if (curScope.variables.containsKey(matcher.group(1))){
+                curScope.variables.get(matcher.group(1)).setData(matcher.group(2), false);
+                return;
             }
             curScope = curScope.outerScope;
         }
@@ -184,7 +194,7 @@ public class Variable {
         if (fullMatcher.find()) {
             this.type = extractType(fullMatcher.group(1));
             this.name = extractName(fullMatcher.group(2));
-            this.data = extractData(fullMatcher.group(3));
+            this.data = extractData(fullMatcher.group(3), false);
             this.isInitialized = true;
         }
         // if this is variable is not going to be initialized yet (<Type> <Name>)
@@ -222,7 +232,7 @@ public class Variable {
      */
     private String extractName(String nameStr) throws VariableError {
         // if the name is already taken in this scope
-        if (this.scope.variables.contains(existingVariables.get(nameStr)))
+        if (this.scope.variables.containsKey(nameStr))
             throw new BadVariableNameAlreadyExists(nameStr);
         // if the name starts with a digit
         if (Pattern.compile("^\\d").matcher(nameStr).find()) {
@@ -246,9 +256,13 @@ public class Variable {
      * @return The matching Data class with the a data value.
      * @throws VariableError If the Variable data is invalid.
      */
-    private Data<?> extractData(String dataStr) throws VariableError {
+    private Data<?> extractData(String dataStr, boolean isFromCallsHandler) throws VariableError {
         if (existingVariables.containsKey(dataStr)) {
             Variable exitingVariable = existingVariables.get(dataStr);
+            if (isFromCallsHandler && !exitingVariable.isInitialized) {
+                System.out.println("// un-initialized variable //");
+                throw new VariableError("");
+            }
             if (this.getType().equals(exitingVariable.getType())) {
                 return exitingVariable.getDataObject();
             } else throw new IllegalVariableCasting(this, exitingVariable);
@@ -275,13 +289,13 @@ public class Variable {
 
     /**
      * Sets the Variable data to the given data.
-     *
      * @param dataStr The new Variable Data as a String.
+     * @param isFromCallsHandler True if the setData method is called from the CallsHandler, else false.
      * @throws VariableError If the Variable data is invalid.
      */
-    public void setData(String dataStr) throws VariableError {
-        if (this.isFinal) throw new IllegalFinalDataChange(this);
-        else this.data = extractData(dataStr);
+    public void setData(String dataStr, boolean isFromCallsHandler) throws VariableError {
+        if (this.isFinal && !isFromCallsHandler) throw new IllegalFinalDataChange(this);
+        else this.data = extractData(dataStr, isFromCallsHandler);
     }
 
     /**

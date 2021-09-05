@@ -1,7 +1,1 @@
-int a, b = 5, c;
-
-aviran(5);
-
-void aviram(int k) {
-
-}
+a = 2;
