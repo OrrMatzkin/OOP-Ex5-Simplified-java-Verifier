@@ -111,6 +111,11 @@ public class Variable {
     private Type type;
 
     /**
+     * The scope who created this variable.
+     */
+    private final Scope scope;
+
+    /**
      * A boolean representing if the variable is initialized.
      */
     private boolean isInitialized;
@@ -132,12 +137,13 @@ public class Variable {
      * @throws VariableError When the Variable declaration goes wrong.
      * @throws ClassNotFoundException When the initialize Line is only a new assignments.
      */
-    public Variable(String initializeLine, boolean isArgument) throws VariableError, ClassNotFoundException {
+    public Variable(String initializeLine, boolean isArgument, Scope scope) throws VariableError, ClassNotFoundException {
+        this.scope = scope;
         this.isArgument = isArgument;
         this.isFinal = initializeLine.startsWith("final");
         // if this is only an assignment (not a new declared variable)
         Matcher assignmentMatcher = Pattern.compile("^(\\S+) *= *(\\S+)$").matcher(initializeLine.trim());
-        if (assignmentMatcher.find()){
+        if (assignmentMatcher.find()) {
             assignVariable(assignmentMatcher);
         }
         // if this is a declaration (a new variable)
@@ -154,9 +160,15 @@ public class Variable {
      * @throws VariableError If the assignment is invalid.
      */
     private void assignVariable(Matcher matcher) throws VariableError {
-        Variable existing = existingVariables.get(matcher.group(1));
-        if (existing == null) throw new VariableDoesNotExist(matcher.group(1));
-        else existing.setData(matcher.group(2));
+        Scope curScope = this.scope;
+        while (curScope != null){
+            if (curScope.variables.contains(existingVariables.get(matcher.group(1)))){
+                existingVariables.get(matcher.group(1)).setData(matcher.group(2));
+                break;
+            }
+            curScope = curScope.outerScope;
+        }
+        throw new VariableDoesNotExist(matcher.group(1));
     }
 
     /**
@@ -209,8 +221,9 @@ public class Variable {
      * @throws VariableError If the given name is invalid throws a VariableError.
      */
     private String extractName(String nameStr) throws VariableError {
-        // if the name is already taken
-        if (existingVariables.containsKey(nameStr)) throw new BadVariableNameAlreadyExists(nameStr);
+        // if the name is already taken in this scope
+        if (this.scope.variables.contains(existingVariables.get(nameStr)))
+            throw new BadVariableNameAlreadyExists(nameStr);
         // if the name starts with a digit
         if (Pattern.compile("^\\d").matcher(nameStr).find()) {
             throw new BadVariableNameDigit(nameStr);
