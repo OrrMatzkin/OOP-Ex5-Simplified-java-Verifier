@@ -1,7 +1,0 @@
-int a, b = 5, c;
-
-aviram(5);
-
-void aviram(int k) {
-int a = 9;
-}

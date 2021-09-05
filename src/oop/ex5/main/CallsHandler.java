@@ -5,15 +5,34 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * a singleton Class which holds references to the existing methods
+ * in the program, alongside their names.
+ */
 public class CallsHandler {
 
+    /**
+     * a list of String, which holds all the code lines in which
+     * a method is to be called
+     */
     public static List<String> calls = new ArrayList<>();
+
+    /**
+     * the Class's single instacne.
+     */
     public static CallsHandler singleInstance = new CallsHandler();
 
+    /**
+     * the Class constructor.
+     */
     private CallsHandler() {
 
     }
 
+    /**
+     * the single instance getter
+     * @return a reference to the Class's single instance
+     */
     public static CallsHandler getSingleInstance() {
         return singleInstance;
     }
@@ -31,6 +50,7 @@ public class CallsHandler {
             System.out.println(call);
         }
     }
+
 
     public void callValidity() throws Exception{
         Pattern pattern = Pattern.compile(" *([a-zA-Z0-9_]+) *(\\(.*\\)) *");
@@ -61,6 +81,10 @@ public class CallsHandler {
             throw new Exception();
         }
         for (int i = 0; i < splitted.length; i++) {
+            if (!scope.givenArguments.get(i).isInitialized()) {
+                System.out.println("// variable not initialized //");
+                throw new Exception();
+            }
             scope.givenArguments.get(i).setData(splitted[i].trim());
         }
     }

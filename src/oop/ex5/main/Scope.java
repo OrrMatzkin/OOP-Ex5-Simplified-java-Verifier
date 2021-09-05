@@ -30,7 +30,7 @@ public class Scope {
     /**
      * a list of the scope's outer scopes.
      */
-    protected List<Scope> outerScopes = new ArrayList<>();
+    protected Scope outerScope;
 
 
     /**
@@ -49,7 +49,6 @@ public class Scope {
     protected String name;
 
 
-
     /**
      * the Scope Class constructor.
      * @param scopeData the scope's code lines.
@@ -57,15 +56,14 @@ public class Scope {
     Scope(List<String> scopeData, Scope outerScope, String name) {
         this.name = name;
 
-
         System.out.println("----------------");
         for (String line: scopeData) {
-            System.out.println(line);
-        }
+            System.out.println(line); }
         System.out.println("----------------\n");
+
         this.length = scopeData.size();
         this.scopeData = scopeData;
-        if (outerScope != null) this.outerScopes.add(outerScope);
+        this.outerScope = outerScope;
     }
 
 
@@ -198,7 +196,7 @@ public class Scope {
             line = line.replaceAll(configStr, "");
             String[] variablesStr = line.split(",");
             for (String variableStr: variablesStr) {
-                this.variables.add(new Variable(configStr + variableStr.trim(), false));
+                this.variables.add(new Variable(configStr + variableStr.trim(), false, this));
             }
         }
         else if (isPossibleCall(line)) {
@@ -211,13 +209,18 @@ public class Scope {
         }
     }
 
+    /**
+     * this method checks if the method call is valid.
+     * @param line a String in which a method is to be called.
+     * @return true in case the line holds a valid s-Java method call,
+     * false otherwise.
+     */
     public boolean isPossibleCall(String line) {
         Pattern pattern = Pattern.compile(" *([a-zA-Z0-9_]+) *(\\(.*\\)) *");
         // removing the '}'
         Matcher matcher = pattern.matcher(line.substring(0, line.length()-1));
         return matcher.find();
     }
-
 
 
     /**
@@ -297,27 +300,8 @@ public class Scope {
         String[] splitted = line.trim().split("=");
         String name = splitted[0].trim();
 
-        Variable varToAdd = new Variable(line.trim(), false);
+        Variable varToAdd = new Variable(line.trim(), false, this);
         return true;
-
-
-//        // adding the current scope to its outer scopes list, in order to
-//        // search in it as well
-//        this.outerScopes.add(this);
-//        for (Scope scope: this.outerScopes) {
-//            for (Variable variable : scope.variables) {
-//                if (variable.getName().equals(name)) {
-//                    System.out.println("// setting argument '" + variable.getName() + "'" + " value to '" +
-//                            splitted[1].trim() + "' //\n");
-//                    variable.setData(splitted[1].trim());
-//                    this.outerScopes.remove(this);
-//                    return true;
-//                }
-//            }
-//        }
-//        // removing the current scope from its outer scopes list
-//        this.outerScopes.remove(this);
-//        return false;
     }
 
 

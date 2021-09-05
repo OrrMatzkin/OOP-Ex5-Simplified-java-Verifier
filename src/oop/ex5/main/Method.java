@@ -79,7 +79,7 @@ public class Method extends Scope {
         for (String argument: splitted) {
             if (argument.equals("")) continue;
             System.out.println("// checking argument " + argument.trim()+ " //");
-            this.givenArguments.add(new Variable(argument.trim(), true));
+            this.givenArguments.add(new Variable(argument.trim(), true, this));
         }
     }
 
@@ -110,21 +110,4 @@ public class Method extends Scope {
             throw new Exception();
         }
     }
-
-//    private void checkArgument (String argument) throws Exception {
-//        System.out.println("argument: " + argument);
-//        if (Pattern.compile("^\\d").matcher(argument).find()) {
-//            System.err.println("starts with a digit");
-//            throw new Exception();
-//        } if (Pattern.compile("^_{1}$").matcher(argument).find()) {
-//            System.err.println("starts with a single underscore");
-//            throw new Exception();
-//        } if (Pattern.compile("(?=\\D)(?=\\W)").matcher(argument).find()) {
-//            System.err.println("contains illegal chars");
-//            throw new Exception();
-//        }
-//    }
-
-
-
 }
