@@ -59,6 +59,9 @@ public class Scope {
         if (outerScope != null) this.outerScopes.add(outerScope);
     }
 
+
+
+
     /**
      * the scope's data decoder.
      * this method iterates over the scope's data (each iteration scans an
@@ -72,7 +75,6 @@ public class Scope {
         int maxLineNum = this.scopeData.size();
         String line;
         for (int lineNum = 0; lineNum < maxLineNum; lineNum++) {
-            System.out.println("------- " + lineNum + " -------");
             line = this.scopeData.get(lineNum);
 
             // in case of a declaration or assigment
@@ -264,23 +266,27 @@ public class Scope {
         String[] splitted = line.trim().split("=");
         String name = splitted[0].trim();
 
-        // adding the current scope to its outer scopes list, in order to
-        // search in it as well
-        this.outerScopes.add(this);
-        for (Scope scope: this.outerScopes) {
-            for (Variable variable : scope.variables) {
-                if (variable.getName().equals(name)) {
-                    System.out.println("// setting argument '" + variable.getName() + "'" + " value to '" +
-                            splitted[1].trim() + "' //\n");
-                    variable.setData(splitted[1].trim());
-                    this.outerScopes.remove(this);
-                    return true;
-                }
-            }
-        }
-        // removing the current scope from its outer scopes list
-        this.outerScopes.remove(this);
-        return false;
+        Variable varToAdd = new Variable(line.trim(), false);
+        return true;
+
+
+//        // adding the current scope to its outer scopes list, in order to
+//        // search in it as well
+//        this.outerScopes.add(this);
+//        for (Scope scope: this.outerScopes) {
+//            for (Variable variable : scope.variables) {
+//                if (variable.getName().equals(name)) {
+//                    System.out.println("// setting argument '" + variable.getName() + "'" + " value to '" +
+//                            splitted[1].trim() + "' //\n");
+//                    variable.setData(splitted[1].trim());
+//                    this.outerScopes.remove(this);
+//                    return true;
+//                }
+//            }
+//        }
+//        // removing the current scope from its outer scopes list
+//        this.outerScopes.remove(this);
+//        return false;
     }
 
 
@@ -288,4 +294,7 @@ public class Scope {
             System.out.println(variable.getType() + " " + variable.getName() + "\n");
     }
 
+    public String getName() {
+        return this.scopeData.get(0);
+    }
 }

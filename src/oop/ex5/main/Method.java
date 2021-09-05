@@ -1,8 +1,6 @@
 package oop.ex5.main;
 
-import java.lang.invoke.VarHandle;
 import java.util.*;
-import java.util.concurrent.locks.Condition;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,7 +12,7 @@ public class Method extends Scope {
     /**
      * a list of all given arguments for the method (can be empty).
      */
-    List<String> givenArguments = new ArrayList<>();
+    List<Variable> givenArguments = new ArrayList<>();
 
     /**
      * a String which holds the first line of the method (the method's
@@ -38,6 +36,10 @@ public class Method extends Scope {
         checkNameValidity();
         processArguments();
         if (!this.scopeData.isEmpty()) scan();
+        for (Variable variable: this.variables) {
+            variable.delete();
+        }
+
     }
 
     /**
@@ -74,22 +76,18 @@ public class Method extends Scope {
         for (String argument: splitted) {
             if (argument.equals("")) continue;
             System.out.println("// checking argument " + argument.trim()+ " //");
-            checkArgumentValidity(argument.trim());
+            this.givenArguments.add(new Variable(argument.trim(), true));
         }
     }
 
-    /**
-     * this method checks if the given argument is a valid s-Java argument.
-     * @param argument the argument to be checked.
-     * @throws Exception
-     */
-    private void checkArgumentValidity(String argument) throws Exception {
-        if (isDeclaration(argument)) this.givenArguments.add(argument);
-        else {
-            System.out.println("// invalid given argument //\n");
-            throw new Exception();
-        }
-    }
+//    /**
+//     * this method checks if the given argument is a valid s-Java argument.
+//     * @param argument the argument to be checked.
+//     * @throws Exception
+//     */
+//    private void addArgument(String argument) throws Exception {
+//        this.givenArguments.add(new Variable(argument, true));
+//    }
 
     /**
      * this method checks if the name of the current method is an s-Java
