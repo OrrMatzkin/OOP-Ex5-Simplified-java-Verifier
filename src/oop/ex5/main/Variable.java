@@ -140,9 +140,8 @@ public class Variable {
      * @param initializeLine The initializing line (trimmed!)
      * @param isArgument True if this variable should is, else false.
      * @throws VariableError When the Variable declaration goes wrong.
-     * @throws ClassNotFoundException When the initialize Line is only a new assignments.
      */
-    public Variable(String initializeLine, boolean isArgument, Scope scope) throws VariableError, ClassNotFoundException {
+    public Variable(String initializeLine, boolean isArgument, Scope scope) throws VariableError {
         this.scope = scope;
         this.isArgument = isArgument;
         this.isFinal = initializeLine.startsWith("final");

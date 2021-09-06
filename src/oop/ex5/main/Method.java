@@ -26,13 +26,13 @@ public class Method extends Scope {
      */
     Method(List<String> scopeData, Scope outerScope, String name) throws Exception {
         super(scopeData, outerScope, name);
-        this.declaration = this.scopeData.get(0);
+        this.declaration = this.rawData.get(0);
         // in order to avoid an infinite loop while scanning the scope's
         // data, we have to remove it's first line (the declaration of the scope)
-        this.scopeData.remove(0);
+        this.rawData.remove(0);
         checkNameValidity();
         processArguments();
-        if (!this.scopeData.isEmpty()) scan();
+        if (!this.rawData.isEmpty()) scan();
         for (Variable variable: this.variables.values()) {
             if (!variable.isArgument())
                 variable.delete();
@@ -110,7 +110,7 @@ public class Method extends Scope {
 
 
     private void checkReturnAtEnd() throws Exception {
-        String lastLine = this.scopeData.get(scopeData.size()-1);
+        String lastLine = this.rawData.get(rawData.size()-1);
         Pattern pattern = Pattern.compile("\\s*return\\s*;\\s*");
         Matcher matcher = pattern.matcher(lastLine);
         if (!matcher.find()) {

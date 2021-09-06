@@ -149,4 +149,16 @@ class VariableDoesNotExist extends VariableError {
     }
 }
 
+/**
+ * Variable does not exist.
+ */
+class InvalidVariableAssignment extends VariableError {
+    /**
+     * The Error constructor.
+     */
+    public InvalidVariableAssignment(String possibleAssignment) {
+        super(possibleAssignment + " is not a valid assignment");
+    }
+}
+
 

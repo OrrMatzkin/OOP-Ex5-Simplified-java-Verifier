@@ -24,9 +24,9 @@ public class Scondition extends Scope {
         this.declaration = scopeData.get(0);
         // in order to avoid an infinite loop while scanning the scope's
         // data, we have to remove it's first line (the declaration of the scope)
-        this.scopeData.remove(0);
+        this.rawData.remove(0);
         extractCondition();
-        if (!this.scopeData.isEmpty()) scan();
+        if (!this.rawData.isEmpty()) scan();
         for (Variable variable: this.variables.values()) {
             variable.delete();
         }

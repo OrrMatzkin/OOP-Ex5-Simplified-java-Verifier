@@ -1,0 +1,9 @@
+final int a = 6;
+
+void foo(int a){
+
+a = 5;
+
+return;
+}
+foo2(5);
