@@ -11,8 +11,6 @@ public class Method extends Scope {
 
     public static HashMap<String, Method> allMethods = new HashMap<>();
 
-
-
     /**
      * a String which holds the first line of the method (the method's
      * declaration line).
@@ -40,10 +38,10 @@ public class Method extends Scope {
                 variable.delete();
         }
         if (allMethods.containsKey(this.name)) {
-            System.out.println("// already existing method name //");
-            throw new Exception();
+            throw new BadMethodNameAlreadyExists(this.name);
         }
         allMethods.put(name, this);
+        checkReturnAtEnd();
     }
 
     /**
@@ -54,7 +52,7 @@ public class Method extends Scope {
      * @return a String which holds the method's name or the method's arguments.
      */
     private String getInfo(String kind) {
-        Pattern pattern = Pattern.compile("^ *void( *)(\\w+) *(\\(\\w* *.*\\)) *$");
+        Pattern pattern = Pattern.compile("^\\s*void(\\s*)(\\w+)\\s*(\\(\\w* *.*\\))\\s*$");
         Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
         matcher.find();
         switch (kind) {
@@ -102,14 +100,22 @@ public class Method extends Scope {
     private void checkNameValidity() throws Exception {
         String name = getInfo("name");
         if (Pattern.compile("^\\d").matcher(name).find()) {
-            System.err.println("// method's starts with a digit //");
-            throw new Exception();
+            throw new BadMethodNameDigit(this.name);
         } else if (Pattern.compile("^_").matcher(name).find()) {
-            System.err.println("// method's starts with a single underscore //");
-            throw new Exception();
+            throw new BadMethodNameUnderscore(this.name);
         } else if (Pattern.compile("(?=\\D)(?=\\W)").matcher(name).find()) {
-            System.err.println("// method's contains illegal chars //");
-            throw new Exception();
+            throw new BadMethodNameIllegal(this.name);
         }
     }
+
+
+    private void checkReturnAtEnd() throws Exception {
+        String lastLine = this.scopeData.get(scopeData.size()-1);
+        Pattern pattern = Pattern.compile("\\s*return\\s*;\\s*");
+        Matcher matcher = pattern.matcher(lastLine);
+        if (!matcher.find()) {
+            throw new MissingReturnStatement(this);
+        }
+    }
+
 }

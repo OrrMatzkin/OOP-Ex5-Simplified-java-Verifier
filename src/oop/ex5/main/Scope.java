@@ -101,8 +101,7 @@ public class Scope {
 
             // in case of invalid line syntax
             else {
-                System.out.println("// invalid syntax in line " + lineNum + "//\n");
-                throw new Exception();
+                throw new InvalidSyntax(this.name);
             }
         }
     }
@@ -120,8 +119,8 @@ public class Scope {
     protected int scopeCreation(String line, int lineNum, int maxLineNum) throws Exception{
         System.out.println("// line ends with '{' //");
 
-        Pattern pattern1 = Pattern.compile("^\\s*(if|while)( *)*\\(.+\\) *$");
-        Pattern pattern2 = Pattern.compile("^\\s*void( *)(\\w+) *\\(\\w* *.*\\) *$");
+        Pattern pattern1 = Pattern.compile("^\\s*(if|while)(\\s*)*\\(.+\\)\\s*$");
+        Pattern pattern2 = Pattern.compile("^\\s*void(\\s*)(\\w+)\\s*\\(\\w* *.*\\)\\s*$");
 
         // matcher (without the "{")
         Matcher matcher1 = pattern1.matcher(line.substring(0, line.length() - 1));
@@ -144,10 +143,7 @@ public class Scope {
         // in case the line ends with "{" but no void/if/while with a
         // valid s-java declaration structure was found
         else {
-            System.out.println("// invalid method/if/else scope declaration //");
-            System.out.println("// problem in line: " + lineNum);
-            System.out.println(line);
-            throw new Exception();
+            throw new InvalidScopeDeclaration();
         }
     }
 
@@ -163,10 +159,10 @@ public class Scope {
      */
     protected int scopeCreationAUX(int lineNum, int maxLineNum, String type, String name) throws Exception {
         int innerScopeSize = findInnerScopeSize(lineNum, maxLineNum);
-        if (innerScopeSize == 0) {
-            System.out.println("// new scope's size is 0 //");
-            throw new Exception();
-        }
+//        if (innerScopeSize == 0) {
+//            System.out.println("// new scope's size is 0 //");
+//            throw new Exception();
+//        }
         List<String> innerScopeData = new ArrayList<>();
         // -1 for not including the closing bracket
         for (int i = lineNum; i < innerScopeSize + lineNum - 1; i++) {
@@ -211,11 +207,31 @@ public class Scope {
             System.out.println("// added a new possible call //");
             CallsHandler.addCall(line);
         }
+        else if (isReturnLine(line)) {
+            return;
+        }
         else {
             System.out.println("// checking for possible value assigment //");
             checkPossibleAssigment(line.substring(0, line.length() - 1));
         }
     }
+
+    /**
+     * this method checks if the given line is a valid s-Java return
+     * statement line.
+     * @param line the line to be checked.
+     * @return true in case the given line is a valid s-Java return statement,
+     * false otherwise.
+     */
+    public boolean isReturnLine(String line) {
+        Pattern pattern = Pattern.compile("\\s*return\\s*;\\s*");
+        Matcher matcher = pattern.matcher(line);
+        //TODO: Orr did you like the use of instanceof? let me
+        // know if you have a better solution
+        return matcher.find() && (this instanceof Method);
+    }
+
+
 
     /**
      * this method checks if the method call is valid.
@@ -224,7 +240,7 @@ public class Scope {
      * false otherwise.
      */
     public boolean isPossibleCall(String line) {
-        Pattern pattern = Pattern.compile(" *([a-zA-Z0-9_]+) *(\\(.*\\)) *");
+        Pattern pattern = Pattern.compile("\\s*([a-zA-Z0-9_]+)\\s*(\\(.*\\))\\s*");
         // removing the '}'
         Matcher matcher = pattern.matcher(line.substring(0, line.length()-1));
         return matcher.find();
@@ -261,16 +277,19 @@ public class Scope {
         int closedBracketsNum = 0;
         while (lineNum < this.scopeData.size() && ((openBracketsNum - closedBracketsNum) != 0)) {
             lineNum++;
-            if (this.scopeData.get(lineNum).trim().endsWith("{")) openBracketsNum++;
-            if (this.scopeData.get(lineNum).trim().equals("}")) closedBracketsNum++;
+            try {
+                if (this.scopeData.get(lineNum).trim().endsWith("{")) openBracketsNum++;
+                if (this.scopeData.get(lineNum).trim().equals("}")) closedBracketsNum++;
+            }
+            catch (IndexOutOfBoundsException e) {
+                throw new BadBracketsStructure(this.name);
+            }
             scopeSize++;
         }
 
         if ((openBracketsNum - closedBracketsNum) != 0) {
-            System.out.println("// no closing bracket was found //");
-            throw new Exception();
+            throw new BadBracketsStructure(this.name);
         }
-
         return scopeSize;
     }
 
@@ -280,9 +299,10 @@ public class Scope {
      * @param line the line to be checked.
      * @throws Exception
      */
+    // TODO: check if this method is still relevant
     protected void checkPossibleAssigment(String line) throws Exception {
         // TODO: check for multiple variables single line declaration
-        Pattern pattern = Pattern.compile("^(.*)( *= *)(.+)");
+        Pattern pattern = Pattern.compile("^(.*)(\\s*=\\s*)(.+)");
         Matcher matcher = pattern.matcher(line);
         if (!matcher.find()) {
             System.out.println("// value assigment invalid //\n");

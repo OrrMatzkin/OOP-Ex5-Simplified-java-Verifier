@@ -53,7 +53,7 @@ public class CallsHandler {
 
 
     public void callValidity() throws Exception{
-        Pattern pattern = Pattern.compile(" *([a-zA-Z0-9_]+) *(\\(.*\\)) *");
+        Pattern pattern = Pattern.compile("\\s*([a-zA-Z0-9_]+)\\s*(\\(.*\\))\\s*");
         Matcher matcher;
         String methodName;
         String arguments;
@@ -67,8 +67,7 @@ public class CallsHandler {
                 System.out.println("// valid call //");
             }
             else {
-                System.out.println("// invalid call - method not found//");
-                throw new Exception();
+                throw new MethodDoesNotExist(methodName);
             }
         }
     }
@@ -81,8 +80,7 @@ public class CallsHandler {
         }
 
         if (splitted.length != scope.arguments.size()) {
-            System.out.println("// incorrect arguments num //");
-            throw new Exception();
+            throw new BadArgumentsNum(scope.getName());
         }
 
 

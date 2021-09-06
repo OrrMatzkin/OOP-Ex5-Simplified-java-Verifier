@@ -80,7 +80,7 @@ class BadMethodNameAlreadyExists extends MethodError {
      * The Error constructor.
      */
     public BadMethodNameAlreadyExists(String name) {
-        super("'Method '" + name + "' is already defined in the scope.");
+        super("'Method '" + name + "' is already defined.");
     }
 }
 
@@ -116,7 +116,22 @@ class MissingReturnStatement extends MethodError {
      * The Error constructor.
      */
     public MissingReturnStatement(Method method) {
-        super("Cannot resolve '" + method.getName() + "'");
+        super("Cannot resolve '" + method.getName() + "' because" +
+                "of a missing Return statement.");
     }
+}
+
+/**
+ * when trying to call a method with a wrong number of arguments.
+ */
+class BadArgumentsNum extends MethodError {
+    /**
+     * The Error constructor.
+     */
+    BadArgumentsNum(String name) {
+        super("Actual and formal argument lists of method '" +
+                name + "' differ in length");
+    }
+
 }
 

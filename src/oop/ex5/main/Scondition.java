@@ -39,7 +39,7 @@ public class Scondition extends Scope {
      * @return
      */
     protected String extractCondition() {
-        Pattern pattern = Pattern.compile("^ *(if|while)( *)*\\((.+)\\) *$");
+        Pattern pattern = Pattern.compile("^\\s*(if|while)(\\s*)*\\((.+)\\)\\s*$");
         Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
         matcher.find();
         String condition = matcher.group(3).trim();
@@ -51,8 +51,7 @@ public class Scondition extends Scope {
         String condition = extractCondition().trim();
         if (checkBooleanReservedWord(condition) || checkStringCondition(condition)
         || checkVariableType(condition)) return;
-        System.out.println("// wrong if/while condition //");
-        throw new Exception();
+        throw new InvalidConditionException();
     }
 
     protected boolean checkBooleanReservedWord(String condition) {
@@ -66,8 +65,7 @@ public class Scondition extends Scope {
                         Variable.existingVariables.get(variable).getType().equals("FLOAT"));
             }
         }
-        System.out.println("// variable not found //");
-        throw new Exception();
+        throw new VariableDoesNotExist(variable);
     }
 
     protected boolean checkStringCondition(String condition) throws Exception {
