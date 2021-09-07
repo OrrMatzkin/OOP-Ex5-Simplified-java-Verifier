@@ -1,9 +1,8 @@
-final int a = 6;
-
-void foo(int a){
+int a, b;
 
 a = 5;
 
+void dif() {
 return;
 }
-foo2(5);
+

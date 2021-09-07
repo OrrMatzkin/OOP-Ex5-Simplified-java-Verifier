@@ -22,9 +22,20 @@ class InvalidSyntax extends ScopeError {
     /**
      * The Error constructor.
      */
-    public InvalidSyntax(String scopeName) {
-        super("Invalid s-Java syntax in scope '"
-                + scopeName +"'.");
+    public InvalidSyntax(String line) {
+        super("'" + line + "' has a s-Java syntax problem (missing ';' or '{').");
+    }
+}
+
+/**
+ * in case of a wrong use of the s-Java code syntax.
+ */
+class InvalidCommand extends ScopeError {
+    /**
+     * The Error constructor.
+     */
+    public InvalidCommand(String line) {
+        super("'" + line + "' is an invalid s-Java command.");
     }
 }
 
@@ -61,7 +72,19 @@ class InvalidConditionException extends ScopeError {
     /**
      * The Error constructor.
      */
-    public InvalidConditionException() {
-        super("Invalid If/While s-Java condition.");
+    public InvalidConditionException(String condition) {
+        super("'" + condition + "' is an invalid If/While s-Java condition.");
+    }
+}
+
+/**
+ * in case of a missing condition.
+ */
+class MissingCondition extends ScopeError {
+    /**
+     * The Error constructor.
+     */
+    public MissingCondition() {
+        super("The If/While s-Java condition is missing.");
     }
 }

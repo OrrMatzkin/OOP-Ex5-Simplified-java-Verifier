@@ -76,9 +76,11 @@ public class Scope {
      * individual code line). according to the exercise's instructions, and the
      * s-Java coding specifications, this method matched each line to it's
      * appropriate cipher.
-     * @throws Exception
+     * @throws ScopeError If there is Scope error.
+     * @throws MethodError If there is Method error.
+     * @throws VariableError If there is Variable error.
      */
-    protected void scan() throws Exception {
+    protected void scan() throws ScopeError, MethodError, VariableError {
 //        System.out.println("// CURRENTLY SCANNING SCOPE ***" + this.getName() + "*** //\n");
         int maxLineNum = this.rawData.size();
         String line;
@@ -92,7 +94,7 @@ public class Scope {
             else if (line.trim().isEmpty()) continue;
             // in case of invalid line syntax
             else {
-                throw new InvalidSyntax(this.name);
+                throw new InvalidSyntax(line);
             }
         }
     }
@@ -105,13 +107,16 @@ public class Scope {
      *                (with respect to the original scope line counter).
      * @param maxLineNum the number of the last line in the original scope.
      * @return the new declared scope's size (the number of lines in it).
-     * @throws Exception
+     * @throws ScopeError If there is Scope error.
+     * @throws MethodError If there is Method error.
+     * @throws VariableError If there is Variable error.
      */
-    protected int scopeCreation(String line, int lineNum, int maxLineNum) throws Exception{
+    protected int scopeCreation(String line, int lineNum, int maxLineNum)
+            throws ScopeError, MethodError, VariableError {
         System.out.println("// line ends with '{' //");
 
-        Pattern pattern1 = Pattern.compile("^\\s*(if|while)(\\s*)*\\(.+\\)\\s*$");
-        Pattern pattern2 = Pattern.compile("^\\s*void(\\s*)(\\w+)\\s*\\(\\w* *.*\\)\\s*$");
+        Pattern pattern1 = Pattern.compile("^\\s*(if|while)(\\s*)*\\(.*\\)\\s*$");
+        Pattern pattern2 = Pattern.compile("^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(\\w* *.*\\)\\s*$");
 
         // matcher (without the "{")
         Matcher matcher1 = pattern1.matcher(line.substring(0, line.length() - 1));
@@ -126,10 +131,12 @@ public class Scope {
         }
         // a method declaration statement
         else if (matcher2.find()) {
-            System.out.println("// creates new method scope //");
-            int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "method", matcher2.group(2));
-            System.out.println("// method's size is : "+ innerScopeSize + "//\n");
-            return innerScopeSize;
+            if (matcher2.group(1).equals("void")) {
+                System.out.println("// creates new method scope //");
+                int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "method", matcher2.group(3));
+                System.out.println("// method's size is : "+ innerScopeSize + "//\n");
+                return innerScopeSize;
+            } else throw new BadMethodType(matcher2.group(1));
         }
         // in case the line ends with "{" but no void/if/while with a
         // valid s-java declaration structure was found
@@ -142,18 +149,17 @@ public class Scope {
      * this method 'creates' a new Method or Scondition Class, corresponding
      * to the given type.
      * @param lineNum the number of the first line in this new declared scope
-     *      *                (with respect to the original scope line counter).
+     *                (with respect to the original scope line counter).
      * @param maxLineNum the number of the last line in the original scope.
      * @param type "method" or "ifWhile" - to determine the new Class's identity.
      * @return the new scope's size (the number of lines in it).
-     * @throws Exception
+     * @throws ScopeError If there is Scope error.
+     * @throws MethodError If there is Method error.
+     * @throws VariableError If there is Variable error.
      */
-    protected int scopeCreationAUX(int lineNum, int maxLineNum, String type, String name) throws Exception {
+    protected int scopeCreationAUX(int lineNum, int maxLineNum, String type, String name)
+            throws ScopeError, MethodError, VariableError {
         int innerScopeSize = findInnerScopeSize(lineNum, maxLineNum);
-//        if (innerScopeSize == 0) {
-//            System.out.println("// new scope's size is 0 //");
-//            throw new Exception();
-//        }
         List<String> innerScopeData = new ArrayList<>();
         // -1 for not including the closing bracket
         for (int i = lineNum; i < innerScopeSize + lineNum - 1; i++) {
@@ -179,8 +185,10 @@ public class Scope {
      * 4. existing Variable assignments.
      * @param line The single line command.
      * @throws VariableError Possible when trying to declare or assign a variable.
+     * @throws InvalidSyntax If there is an invalid syntax in one of the scope lines.
+     * @throws InvalidCommand If there is an invalid command in one of the scope lines.
      */
-    private void singleLineCommand(String line) throws VariableError {
+    private void singleLineCommand(String line) throws VariableError, InvalidCommand {
         String trimmedLine = line.substring(0,line.length()-1).trim();
         // New Variable declarations
         if (possibleVariableDeclaration(line)) {
@@ -194,8 +202,8 @@ public class Scope {
         }
         // A return statement
         else if (isReturnLine(line)) {
-            return;
-            //TODO: do we check for the return statement?
+            this.variables.forEach((k, v) -> v.delete());
+            this.arguments.forEach((k, a) -> a.delete());
         }
         // A Variable assignments
         else {
@@ -242,8 +250,9 @@ public class Scope {
      * Tries to assign an existing argument or variable a new value.
      * @param line The line to be checked.
      * @throws VariableError If one of the possible assignments fails.
+     * @throws InvalidCommand If there is an invalid command (not an assignment).
      */
-    private void assignExistingVariable(String line) throws VariableError {
+    private void assignExistingVariable(String line) throws VariableError, InvalidCommand {
         Pattern pattern = Pattern.compile("^(\\S+) *= *(\\S+)$");
         String[] assignmentsStr = line.split(",");
         for (String possibleAssignment: assignmentsStr){
@@ -263,7 +272,7 @@ public class Scope {
                 }
                 throw new VariableDoesNotExist(matcher.group(1));
             } else
-                throw new InvalidVariableAssignment(possibleAssignment);
+                throw new InvalidCommand(line);
         }
 
     }

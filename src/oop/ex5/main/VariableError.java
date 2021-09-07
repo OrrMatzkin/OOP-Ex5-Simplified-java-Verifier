@@ -22,8 +22,8 @@ class BadVariableDeclaration extends VariableError {
     /**
      * The Error constructor.
      */
-    public BadVariableDeclaration() {
-        super("Declaration line is invalid");
+    public BadVariableDeclaration(String initializeLine, boolean isArguments) {
+        super("'" + initializeLine + "' is not a valid " + ((isArguments) ? "argument" : "variable") + " declaration");
     }
 }
 

@@ -1,6 +1,5 @@
 package oop.ex5.main;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -145,39 +144,10 @@ public class Variable {
         this.scope = scope;
         this.isArgument = isArgument;
         this.isFinal = initializeLine.startsWith("final");
-        // if this is only an assignment (not a new declared variable)
-        Matcher assignmentMatcher = Pattern.compile("^(\\S+) *= *(\\S+)$").matcher(initializeLine.trim());
-        if (assignmentMatcher.find()) {
-            assignVariable(assignmentMatcher);
-        }
-        // if this is a declaration (a new variable)
-        else {
             updateParameters(isFinal ? initializeLine.replaceFirst("final", "")
                     : initializeLine);
             if (this.isArgument) existingArguments.put(this.name, this);
             else existingVariables.put(this.name, this);
-        }
-    }
-
-    /**
-     * Tries to assign an existing variable a new value.
-     * @param matcher The matcher of the assignments.
-     * @throws VariableError If the assignment is invalid.
-     */
-    private void assignVariable(Matcher matcher) throws VariableError {
-        Scope curScope = this.scope;
-        while (curScope != null){
-            if (curScope.arguments.containsKey(matcher.group(1))){
-                curScope.arguments.get(matcher.group(1)).setData(matcher.group(2), false);
-                return;
-            }
-            if (curScope.variables.containsKey(matcher.group(1))){
-                curScope.variables.get(matcher.group(1)).setData(matcher.group(2), false);
-                return;
-            }
-            curScope = curScope.outerScope;
-        }
-        throw new VariableDoesNotExist(matcher.group(1));
     }
 
     /**
@@ -201,7 +171,7 @@ public class Variable {
             this.type = extractType(partMatcher.group(1));
             this.name = extractName(partMatcher.group(2));
             this.isInitialized = false;
-        } else throw new BadVariableDeclaration();
+        } else throw new BadVariableDeclaration(initializeLine, this.isArgument);
     }
 
     /**
@@ -243,7 +213,8 @@ public class Variable {
         } else if (Pattern.compile("(?=\\D)(?=\\W)").matcher(nameStr).find()) {
             throw new BadVariableNameIllegal(nameStr);
             // if the name is one of the reserved keyword
-        } else if (Pattern.compile("^(int|double|String|char|boolean)$").matcher(nameStr).find()) {
+        } else if (Pattern.compile("^(int|double|String|char|boolean|final|if|while|true|false|void)$")
+                .matcher(nameStr).find()) {
             throw new BadVariableNameSavedKeyword(nameStr);
         } else return nameStr;
     }
@@ -359,8 +330,6 @@ public class Variable {
     public boolean isArgument() {
         return isArgument;
     }
-
-    //TODO: call delete for all scope variable when the scope closes!!!!
 
     /**
      * Removes the Variable object from the existing variables hash set.

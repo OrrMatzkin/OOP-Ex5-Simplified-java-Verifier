@@ -92,7 +92,7 @@ class BadMethodType extends MethodError {
      * The Error constructor.
      */
     public BadMethodType(String type) {
-        super("" + type + " is an invalid Method type, Sjava allows only void methods.");
+        super("" + type + " is not a valid Method type, Sjava supports only void methods.");
     }
 }
 
@@ -116,8 +116,7 @@ class MissingReturnStatement extends MethodError {
      * The Error constructor.
      */
     public MissingReturnStatement(Method method) {
-        super("Cannot resolve '" + method.getName() + "' because" +
-                "of a missing Return statement.");
+        super("Missing return statement in '" + method.getName() + "' method");
     }
 }
 
