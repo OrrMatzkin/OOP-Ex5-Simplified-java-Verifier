@@ -32,10 +32,8 @@ public class Scondition extends Scope {
         this.rawData.remove(0);
         extractCondition();
         if (!this.rawData.isEmpty()) scan();
-        for (Variable variable: this.variables.values()) {
-            variable.delete();
-        }
         checkConditionValidity();
+        for (Variable variable: this.variables.values()) variable.delete();
     }
 
     /**
@@ -82,11 +80,14 @@ public class Scondition extends Scope {
      * @throws VariableDoesNotExist If the varible does not exist.
      */
     private boolean checkVariableType(String variable) throws VariableDoesNotExist {
-        if (Variable.existingVariables.containsKey(variable)) {
-            if (Variable.existingVariables.get(variable).isInitialized()) {
-                return (Variable.existingVariables.get(variable).getType().equals("INT") ||
-                        Variable.existingVariables.get(variable).getType().equals("DOUBLE"));
+        if (this.variables.containsKey(variable)) {
+            if (this.variables.get(variable).isInitialized()) {
+                return (this.variables.get(variable).getType().equals("INT") ||
+                        this.variables.get(variable).getType().equals("DOUBLE"));
             }
+        } else if (this.arguments.containsKey(variable)) {
+            return (this.arguments.get(variable).getType().equals("INT") ||
+                    this.arguments.get(variable).getType().equals("DOUBLE"));
         }
         throw new VariableDoesNotExist(variable);
     }
@@ -97,9 +98,7 @@ public class Scondition extends Scope {
      * @return true if the condition is valid, false elsewhere.
      */
     private boolean checkStringCondition(String condition)  {
-        Variable intVar;
-        Variable doubleVar;
-        Variable booleanVar;
+        Variable intVar, doubleVar, booleanVar;
         boolean[] checkArr = {true, true, true};
         // try to create the test variables
         try {

@@ -89,9 +89,9 @@ public class Scope {
             // in case the current is a comment line or an empty line.
             if (line.startsWith("//") || line.trim().isEmpty()) continue;
             // in case of a declaration or assigment
-            else if (line.endsWith(";")) singleLineCommand(line);
+            else if (line.trim().endsWith(";")) singleLineCommand(line);
             // in case of a new scope creation
-            else if (line.endsWith("{")) lineNum += scopeCreation(line, lineNum, maxLineNum) -1;
+            else if (line.trim().endsWith("{")) lineNum += scopeCreation(line, lineNum, maxLineNum) -1;
             // in case the current line is empty
             // in case of invalid line syntax
             else {
