@@ -43,4 +43,14 @@ public class Sjavac {
 // must first assign a value to the global variable itself
 // (even if it was assigned a value in some other method).
 
+//TODO: A method may not be declared inside another method.
+
+//TODO: Method calls may only appear inside a method, and not in the global scope.
+
+//TODO: multiple conditions separated by AND/OR may appear (e.g., if ( a || b || c) {).
+// You are not required to support conditions containing brackets, like if((a||b)&&c...) {
+
+//TODO: what the hell does this mean??? -> if/while blocks can be nested to a practically unlimited depth
+// (i.e. you should support a depth of at least java.lang.Integer.MAX VALUE)
+
 

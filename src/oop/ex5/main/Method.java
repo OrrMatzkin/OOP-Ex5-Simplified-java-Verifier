@@ -97,7 +97,7 @@ public class Method extends Scope {
             throw new BadMethodNameUnderscore(this.name);
         } else if (Pattern.compile("(?=\\D)(?=\\W)").matcher(name).find()) {
             throw new BadMethodNameIllegal(this.name);
-        } else if (Pattern.compile("^(int|double|String|char|boolean|final|if|while|true|false|void)$")
+        } else if (Pattern.compile("^(int|double|String|char|boolean|final|if|while|true|false|void|return)$")
                 .matcher(name).find()) {
             throw new BadMethodNameSavedKeyword(name);
         }

@@ -214,7 +214,7 @@ public class Variable {
         } else if (Pattern.compile("(?=\\D)(?=\\W)").matcher(nameStr).find()) {
             throw new BadVariableNameIllegal(nameStr);
             // if the name is one of the reserved keyword
-        } else if (Pattern.compile("^(int|double|String|char|boolean|final|if|while|true|false|void)$")
+        } else if (Pattern.compile("^(int|double|String|char|boolean|final|if|while|true|false|void|return)$")
                 .matcher(nameStr).find()) {
             throw new BadVariableNameSavedKeyword(nameStr);
         } else return nameStr;

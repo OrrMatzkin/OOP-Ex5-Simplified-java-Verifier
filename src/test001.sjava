@@ -1,9 +1,8 @@
-void foo(int d) {
-int a;
-if (true) {
-int a = 5;
-}
-a = 0;
-d = 6;
-return;
+boolean a = true;
+boolean b =5;
+
+if (a){
+    if (b){
+
+    }
 }
