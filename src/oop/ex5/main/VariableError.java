@@ -150,7 +150,7 @@ class VariableDoesNotExist extends VariableError {
 }
 
 /**
- * Variable does not exist.
+ * Invalid variable assignment
  */
 class InvalidVariableAssignment extends VariableError {
     /**
@@ -159,6 +159,19 @@ class InvalidVariableAssignment extends VariableError {
     public InvalidVariableAssignment(String possibleAssignment) {
         super(possibleAssignment + " is not a valid assignment");
     }
+}
+
+/**
+ * when trying to call a method with a wrong number of arguments.
+ */
+class UninitializedParameter extends VariableError {
+    /**
+     * The Error constructor.
+     */
+    UninitializedParameter(String param) {
+        super( param + " is not initialized");
+    }
+
 }
 
 

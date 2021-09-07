@@ -1,2 +1,4 @@
 int a = 5;
+String h = "hello";
 double b = a;
+boolean c = a, d=  h ;

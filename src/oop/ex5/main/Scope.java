@@ -253,7 +253,7 @@ public class Scope {
      * @throws VariableError If one of the possible assignments fails.
      * @throws InvalidCommand If there is an invalid command (not an assignment).
      */
-    private void assignExistingVariable(String line) throws VariableError, InvalidCommand {
+    private void assignExistingVariable(String line) throws VariableError, InvalidCommand{
         Pattern pattern = Pattern.compile("^(\\S+) *= *(\\S+)$");
         String[] assignmentsStr = line.split(",");
         for (String possibleAssignment: assignmentsStr){

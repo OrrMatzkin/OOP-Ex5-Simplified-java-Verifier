@@ -112,7 +112,7 @@ public class Scondition extends Scope {
         try {
             intVar.setData(condition, false);
         }
-        catch (VariableError e) {
+        catch (VariableError  e) {
             checkArr[0] = false;
         }
         try {

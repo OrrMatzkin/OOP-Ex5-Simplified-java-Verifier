@@ -226,14 +226,18 @@ public class Variable {
      * @return The matching Data class with the a data value.
      * @throws VariableError If the Variable data is invalid.
      */
-    private Data<?> extractData(String dataStr, boolean isFromCallsHandler) throws VariableError {
+    private Data<?> extractData(String dataStr, boolean isFromCallsHandler)
+            throws VariableError {
         if (existingVariables.containsKey(dataStr)) {
             Variable exitingVariable = existingVariables.get(dataStr);
             if (isFromCallsHandler && !exitingVariable.isInitialized) {
                 System.out.println("// un-initialized variable //");
-                throw new VariableError("");
+                throw new UninitializedParameter(exitingVariable.getName());
             }
-            if (this.getType().equals(exitingVariable.getType())) {
+            if (this.getType().equals(exitingVariable.getType()) ||
+                (this.type == Type.DOUBLE && exitingVariable.getType().equals("INT")) ||
+                (this.type == Type.BOOLEAN && exitingVariable.getType().equals("INT")
+                        || exitingVariable.getType().equals("DOUBLE"))) {
                 return exitingVariable.getDataObject();
             } else throw new IllegalVariableCasting(this, exitingVariable);
         }
