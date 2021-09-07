@@ -86,12 +86,13 @@ public class Scope {
         String line;
         for (int lineNum = 0; lineNum < maxLineNum; lineNum++) {
             line = this.rawData.get(lineNum);
+            // in case the current is a comment line or an empty line.
+            if (line.startsWith("//") || line.trim().isEmpty()) continue;
             // in case of a declaration or assigment
-            if (line.endsWith(";")) singleLineCommand(line);
+            else if (line.endsWith(";")) singleLineCommand(line);
             // in case of a new scope creation
             else if (line.endsWith("{")) lineNum += scopeCreation(line, lineNum, maxLineNum) -1;
             // in case the current line is empty
-            else if (line.trim().isEmpty()) continue;
             // in case of invalid line syntax
             else {
                 throw new InvalidSyntax(line);

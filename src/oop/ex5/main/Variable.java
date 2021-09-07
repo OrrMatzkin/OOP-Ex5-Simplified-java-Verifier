@@ -252,7 +252,7 @@ public class Variable {
                 if (dataStr.equals("true") || dataStr.equals("false"))
                     return new Data<>(Boolean.parseBoolean(dataStr));
                 else
-                    return new Data<>(!(Double.parseDouble(dataStr) == 0)); //TODO: check if 0 is false.
+                    return new Data<>(!(Double.parseDouble(dataStr) == 0));
         }
         return null;
     }
