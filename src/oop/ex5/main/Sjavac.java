@@ -53,4 +53,6 @@ public class Sjavac {
 //TODO: what the hell does this mean??? -> if/while blocks can be nested to a practically unlimited depth
 // (i.e. you should support a depth of at least java.lang.Integer.MAX VALUE)
 
+//TODO: make the final catches and deletes all the system.out.prints
+
 
