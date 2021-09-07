@@ -171,7 +171,18 @@ class UninitializedParameter extends VariableError {
     UninitializedParameter(String param) {
         super( param + " is not initialized");
     }
+}
 
+/**
+ * when trying to call a method with a wrong number of arguments.
+ */
+class VariableInitInMethodDeclaration extends VariableError {
+    /**
+     * The Error constructor.
+     */
+    VariableInitInMethodDeclaration(String variable) {
+        super( variable + " can not be initialized in a method declaration.");
+    }
 }
 
 

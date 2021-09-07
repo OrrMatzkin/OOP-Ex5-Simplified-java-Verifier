@@ -1,4 +1,9 @@
+void foo(int d) {
+int a;
+if (true) {
 int a = 5;
-String h = "hello";
-double b = a;
-boolean c = a, d=  h ;
+}
+a = 0;
+d = 6;
+return;
+}

@@ -44,7 +44,7 @@ class BadMethodNameUnderscore extends MethodError {
      * The Error constructor.
      */
     public BadMethodNameUnderscore(String name) {
-        super("'" + name + "' is an invalid Method Name, can't be only an underscore.");
+        super("'" + name + "' is an invalid Method Name, can't start with an underscore.");
     }
 }
 

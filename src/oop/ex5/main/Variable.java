@@ -161,6 +161,7 @@ public class Variable {
         Matcher partMatcher = Pattern.compile("^(\\S+) +(\\S+)$").matcher(initializeLine.trim());
         // with initialization (<Type> <Name> <=> <Data>)
         if (fullMatcher.find()) {
+            if (this.isArgument) throw new VariableInitInMethodDeclaration(fullMatcher.group(2));
             this.type = extractType(fullMatcher.group(1));
             this.name = extractName(fullMatcher.group(2));
             this.data = extractData(fullMatcher.group(3), false);
