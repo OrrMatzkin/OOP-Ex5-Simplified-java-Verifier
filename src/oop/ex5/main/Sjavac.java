@@ -43,7 +43,6 @@ public class Sjavac {
 // must first assign a value to the global variable itself
 // (even if it was assigned a value in some other method).
 
-//TODO: A method may not be declared inside another method.
 
 //TODO: Method calls may only appear inside a method, and not in the global scope.
 

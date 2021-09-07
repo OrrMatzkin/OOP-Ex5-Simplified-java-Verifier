@@ -133,4 +133,16 @@ class BadArgumentsNum extends MethodError {
     }
 }
 
+/**
+ * when trying to call a method with a wrong number of arguments.
+ */
+class InvalidMethodCreation extends MethodError {
+    /**
+     * The Error constructor.
+     */
+    InvalidMethodCreation(String name) {
+        super("'" + name + "' can not be declared inside another Method.");
+    }
+}
+
 

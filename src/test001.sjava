@@ -1,8 +1,13 @@
-boolean a = true;
-boolean b =5;
+void foo() {
 
-if (a){
-    if (b){
 
+    void foo2(int a){
+
+    return;
     }
+
+
+return;
 }
+
+

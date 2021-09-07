@@ -133,6 +133,9 @@ public class Scope {
         // a method declaration statement
         else if (matcher2.find()) {
             if (matcher2.group(1).equals("void")) {
+                if (this.outerScope != null) {
+                    throw new InvalidMethodCreation(matcher2.group(3));
+                }
                 System.out.println("// creates new method scope //");
                 int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "method", matcher2.group(3));
                 System.out.println("// method's size is : "+ innerScopeSize + "//\n");
