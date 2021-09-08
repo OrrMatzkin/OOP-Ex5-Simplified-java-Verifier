@@ -1,13 +1,15 @@
-void foo() {
 
+    foo2();
 
-    void foo2(int a){
+void foo(){
 
-    return;
-    }
 
 
 return;
 }
 
+void foo2(){
 
+
+return;
+}

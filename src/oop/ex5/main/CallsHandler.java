@@ -64,6 +64,7 @@ public class CallsHandler {
             arguments = matcher.group(2).substring(1, matcher.group(2).length()-1);
             if (Method.allMethods.containsKey(methodName)) {
                 checkPossibleArguments(Method.allMethods.get(methodName), arguments);
+//                checkCallPosition(call);
                 System.out.println("// valid call //");
             }
             else {
@@ -105,6 +106,12 @@ public class CallsHandler {
         }
     }
 
+//    public void checkCallPosition(Call method){
+//        Scope outerScope = method.outerScope;
+//        while (outerScope != null){
+//            if outerScope
+//        }
+//    }
 
 
 }

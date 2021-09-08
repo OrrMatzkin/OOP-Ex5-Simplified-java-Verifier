@@ -189,10 +189,10 @@ public class Scope {
      * 4. existing Variable assignments.
      * @param line The single line command.
      * @throws VariableError Possible when trying to declare or assign a variable.
-     * @throws InvalidSyntax If there is an invalid syntax in one of the scope lines.
      * @throws InvalidCommand If there is an invalid command in one of the scope lines.
+     * @throws InvalidMethodCall If a method is called not from the global scope.
      */
-    private void singleLineCommand(String line) throws VariableError, InvalidCommand {
+    private void singleLineCommand(String line) throws VariableError, InvalidCommand, InvalidMethodCall {
         String trimmedLine = line.substring(0,line.length()-1).trim();
         // New Variable declarations
         if (possibleVariableDeclaration(line)) {
@@ -201,6 +201,7 @@ public class Scope {
         }
         // A Method call
         else if (possibleMethodCall(line)) {
+            if (!callFromMethod()) throw new InvalidMethodCall(line.substring(0, line.length()-1).trim());
             System.out.println("// added a new possible call //");
             CallsHandler.addCall(line);
         }
@@ -216,6 +217,18 @@ public class Scope {
         }
     }
 
+    /**
+     * Check if this scope or any of his outer scope is a method.
+     * @return True if this scope is a method or wrapped by one, false elsewhere.
+     */
+    protected boolean callFromMethod(){
+        Scope outerScope = this;
+        while (outerScope != null){
+            if (outerScope instanceof Method) return true;
+            outerScope = outerScope.outerScope;
+        }
+        return false;
+    }
     /**
      * Checks if the given line is a valid s-Java return statement line.
      * @param line The line to be checked.

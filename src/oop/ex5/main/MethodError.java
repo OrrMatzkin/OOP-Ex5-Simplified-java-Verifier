@@ -134,7 +134,7 @@ class BadArgumentsNum extends MethodError {
 }
 
 /**
- * when trying to call a method with a wrong number of arguments.
+ * Invalid Method creation, when trying to declare a new method inside a method.
  */
 class InvalidMethodCreation extends MethodError {
     /**
@@ -142,6 +142,18 @@ class InvalidMethodCreation extends MethodError {
      */
     InvalidMethodCreation(String name) {
         super("'" + name + "' can not be declared inside another Method.");
+    }
+}
+
+/**
+ * Invalid Method call, when trying to call a method from the global scope.
+ */
+class InvalidMethodCall extends MethodError {
+    /**
+     * The Error constructor.
+     */
+    InvalidMethodCall(String name) {
+        super("'" + name + "' can not be called from the global scope.");
     }
 }
 
