@@ -156,7 +156,7 @@ public class Variable {
      * @param initializeLine The initialize line without the final keyword.
      * @throws VariableError If updating the parameter is unsuccessful it throws a VariableError.
      */
-    private void updateParameters(String initializeLine) throws VariableError {
+    public void updateParameters(String initializeLine) throws VariableError {
         Matcher fullMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)\\s*=\\s*(\\S+)$").matcher(initializeLine.trim());
         Matcher partMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)$").matcher(initializeLine.trim());
         // with initialization (<Type> <Name> <=> <Data>)
@@ -164,7 +164,7 @@ public class Variable {
             if (this.isArgument) throw new VariableInitInMethodDeclaration(fullMatcher.group(2));
             this.type = extractType(fullMatcher.group(1));
             this.name = extractName(fullMatcher.group(2));
-            this.data = extractData(fullMatcher.group(3), false);
+            this.data = extractData(fullMatcher.group(3), false, initializeLine.trim());
             this.isInitialized = true;
         }
         // if this is variable is not going to be initialized yet (<Type> <Name>)
@@ -183,7 +183,7 @@ public class Variable {
      * @return the Type of the Variable.
      * @throws VariableError If the given Type is invalid throws a VariableError.
      */
-    private Type extractType(String typeStr) throws VariableError {
+    public Type extractType(String typeStr) throws VariableError {
         Matcher matcher;
         for (Type type : Type.values()) {
             matcher = type.typePattern.matcher(typeStr);
@@ -201,7 +201,7 @@ public class Variable {
      * @return The name of the Variable.
      * @throws VariableError If the given name is invalid throws a VariableError.
      */
-    private String extractName(String nameStr) throws VariableError {
+    public String extractName(String nameStr) throws VariableError {
         // if the name is already taken in this scope
         if (this.scope.variables.containsKey(nameStr) || this.scope.arguments.containsKey(nameStr))
             throw new BadVariableNameAlreadyExists(nameStr);
@@ -228,7 +228,7 @@ public class Variable {
      * @return The matching Data class with the a data value.
      * @throws VariableError If the Variable data is invalid.
      */
-    private Data<?> extractData(String dataStr, boolean isFromCallsHandler) throws VariableError {
+    public Data<?> extractData(String dataStr, boolean isFromCallsHandler, String initializeLine) throws VariableError {
         // checks for an already existing variable or argument
         Variable existingVariable = getExistsInVariablesOrArguments(dataStr);
         if (existingVariable != null){
@@ -248,6 +248,11 @@ public class Variable {
         }
 
         // if there is no existing variable or argument
+        if (this.scope instanceof Method) {
+            GlobalVariablesChecker.addDeclaration(initializeLine);
+            // System.out.println("adding Global declaration " + initializeLine);
+            return null;
+        }
         Matcher matcher = this.type.valuePattern.matcher(dataStr);
         if (!matcher.find()) throw new BadVariableData(this, dataStr);
         switch (this.type) {
@@ -284,7 +289,7 @@ public class Variable {
      */
     public void setData(String dataStr, boolean isFromCallsHandler) throws VariableError {
         if (this.isFinal && !isFromCallsHandler) throw new IllegalFinalDataChange(this);
-        else this.data = extractData(dataStr, isFromCallsHandler);
+        else this.data = extractData(dataStr, isFromCallsHandler, null);
     }
 
     /**

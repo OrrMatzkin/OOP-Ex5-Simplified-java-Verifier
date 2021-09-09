@@ -1,8 +1,0 @@
-int a = 5;
-
-void k (int p) {
-b = a;
-return;
-}
-
-int b;

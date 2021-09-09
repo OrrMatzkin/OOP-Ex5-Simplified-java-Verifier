@@ -12,6 +12,9 @@ public class GlobalVariablesChecker {
      */
     public static List<String> globalVariablesAssignments = new ArrayList<>();
 
+    public static List<String> globalVariablesDeclaration = new ArrayList<>();
+
+
     /**
      * The Class's single instacne.
      */
@@ -39,6 +42,11 @@ public class GlobalVariablesChecker {
         globalVariablesAssignments.add(assignment);
     }
 
+    public static void addDeclaration(String declaration) {
+        globalVariablesDeclaration.add(declaration);
+    }
+
+
     /**
      * This method iterates over all possible variables assignments (from Method scopes),
      * and checks if the variable was declared in the global scope after the assignments.
@@ -55,6 +63,12 @@ public class GlobalVariablesChecker {
                 }
                 else throw new VariableDoesNotExist(matcher.group(1));
             }
+        }
+    }
+
+    public static void checkGlobalDeclaration() throws InvalidCommand, InvalidMethodCall, VariableError {
+        for (String declaration: globalVariablesDeclaration) {
+            Scope.globalScope.singleLineCommand(declaration + ";");
         }
     }
 

@@ -196,7 +196,7 @@ public class Scope {
      * @throws InvalidCommand If there is an invalid command in one of the scope lines.
      * @throws InvalidMethodCall If a method is called not from the global scope.
      */
-    private void singleLineCommand(String line) throws VariableError, InvalidCommand, InvalidMethodCall {
+    public void singleLineCommand(String line) throws VariableError, InvalidCommand, InvalidMethodCall {
         String trimmedLine = line.trim();
         trimmedLine = trimmedLine.substring(0,trimmedLine.length()-1);
         // New Variable declarations
@@ -321,7 +321,6 @@ public class Scope {
 
             Variable variable = new Variable(configStr +
                     variableStr.trim(), false, this);
-            //TODO: aviram idiot (test 251)
             this.variables.put(variable.getName(), variable);
         }
     }

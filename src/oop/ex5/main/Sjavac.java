@@ -9,7 +9,7 @@ public class Sjavac {
     public static void main(String[] args) {
 
         try {
-            if (args.length < 1) throw new IllegalArgumentException("Missing Sjava file name.");
+            if (args.length < 1) throw new IllegalArgumentException("Missing s-Java file name.");
             else if (args.length > 1) throw new IllegalArgumentException("Too many arguments.");
             List<String> fileContent = getSjavaLines(args[0]);
             CallsHandler callsHandler = CallsHandler.getSingleInstance();
@@ -17,6 +17,7 @@ public class Sjavac {
             scope.scan();
             callsHandler.callValidity();
             GlobalVariablesChecker.checkGlobalAssignments();
+            GlobalVariablesChecker.checkGlobalDeclaration();
         }
         catch (DataFormatException | FileNotFoundException | IllegalArgumentException e ) {
             System.out.println("2");
@@ -25,7 +26,7 @@ public class Sjavac {
         }
         catch (VariableError | ScopeError | MethodError e) {
             System.out.println("1");
-//            e.printStackTrace();
+            e.printStackTrace();
             System.err.println(e);
             return;
 
