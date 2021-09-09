@@ -2,31 +2,40 @@ package oop.ex5.main;
 
 import java.io.FileNotFoundException;
 import java.io.IOError;
-import java.security.InvalidParameterException;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
 public class Sjavac {
-    public static void main(String[] args) throws FileNotFoundException, DataFormatException, Exception {
-        if (args.length < 1) throw new IllegalArgumentException("Please enter the source Sjava file name.");
-        List<String> fileContent = getSjavaLines(args[0]);
-        CallsHandler callsHandler = CallsHandler.getSingleInstance();
-        try {
-            Scope scope = new Scope(fileContent, null, "Global Scope");
+    public static void main(String[] args) {
 
+        try {
+            if (args.length < 1) throw new IllegalArgumentException("Missing Sjava file name.");
+            else if (args.length > 1) throw new IllegalArgumentException("Too many arguments.");
+            List<String> fileContent = getSjavaLines(args[0]);
+            CallsHandler callsHandler = CallsHandler.getSingleInstance();
+            Scope scope = new Scope(fileContent, null, "Global Scope");
             scope.scan();
             callsHandler.callValidity();
             GlobalVariablesChecker.checkGlobalAssignments();
         }
-        catch (IOError e) {
+        catch (DataFormatException | FileNotFoundException | IllegalArgumentException e ) {
             System.out.println("2");
             System.err.println(e);
             return;
         }
         catch (VariableError | ScopeError | MethodError e) {
             System.out.println("1");
+//            e.printStackTrace();
             System.err.println(e);
             return;
+
+        } finally {
+            Variable.existingVariables.clear();
+            Variable.existingArguments.clear();
+            Method.allMethods.clear();
+            CallsHandler.calls.clear();
+            GlobalVariablesChecker.globalVariablesAssignments.clear();
+            Scope.globalScope = null;
         }
 
         System.out.println("0");
