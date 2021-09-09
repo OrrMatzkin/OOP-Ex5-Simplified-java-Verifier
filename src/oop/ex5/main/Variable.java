@@ -157,8 +157,8 @@ public class Variable {
      * @throws VariableError If updating the parameter is unsuccessful it throws a VariableError.
      */
     private void updateParameters(String initializeLine) throws VariableError {
-        Matcher fullMatcher = Pattern.compile("^(\\S+) +(\\S+) *= *(\\S+)$").matcher(initializeLine.trim());
-        Matcher partMatcher = Pattern.compile("^(\\S+) +(\\S+)$").matcher(initializeLine.trim());
+        Matcher fullMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)\\s*=\\s*(\\S+)$").matcher(initializeLine.trim());
+        Matcher partMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)$").matcher(initializeLine.trim());
         // with initialization (<Type> <Name> <=> <Data>)
         if (fullMatcher.find()) {
             if (this.isArgument) throw new VariableInitInMethodDeclaration(fullMatcher.group(2));
@@ -169,6 +169,7 @@ public class Variable {
         }
         // if this is variable is not going to be initialized yet (<Type> <Name>)
         else if (partMatcher.find()) {
+            if (this.isFinal) throw new UninitializedFinalVariable(partMatcher.group(2));
             this.type = extractType(partMatcher.group(1));
             this.name = extractName(partMatcher.group(2));
             this.isInitialized = false;
@@ -202,7 +203,7 @@ public class Variable {
      */
     private String extractName(String nameStr) throws VariableError {
         // if the name is already taken in this scope
-        if (this.scope.variables.containsKey(nameStr))
+        if (this.scope.variables.containsKey(nameStr) || this.scope.arguments.containsKey(nameStr))
             throw new BadVariableNameAlreadyExists(nameStr);
         // if the name starts with a digit
         if (Pattern.compile("^\\d").matcher(nameStr).find()) {
@@ -227,32 +228,26 @@ public class Variable {
      * @return The matching Data class with the a data value.
      * @throws VariableError If the Variable data is invalid.
      */
-    private Data<?> extractData(String dataStr, boolean isFromCallsHandler)
-            throws VariableError {
-        //TODO: Orr fix this you idiot
-        if (existingVariables.containsKey(dataStr)) {
-            Variable exitingVariable = existingVariables.get(dataStr);
-            if (isFromCallsHandler && !exitingVariable.isInitialized) {
-                // System.out.println("// un-initialized variable //");
-                throw new UninitializedParameter(exitingVariable.getName());
-            }
-            if (this.getType().equals(exitingVariable.getType()) ||
-                (this.type == Type.DOUBLE && exitingVariable.getType().equals("INT")) ||
-                (this.type == Type.BOOLEAN && exitingVariable.getType().equals("INT")
-                        || exitingVariable.getType().equals("DOUBLE"))) {
-                return exitingVariable.getDataObject();
-            } else throw new IllegalVariableCasting(this, exitingVariable);
-        }
-        if (existingArguments.containsKey(dataStr)) {
-            Variable exitingVariable = existingArguments.get(dataStr);
-            if (this.getType().equals(exitingVariable.getType()) ||
-                    (this.type == Type.DOUBLE && exitingVariable.getType().equals("INT")) ||
-                    (this.type == Type.BOOLEAN && exitingVariable.getType().equals("INT")
-                            || exitingVariable.getType().equals("DOUBLE"))) {
-                return exitingVariable.getDataObject();
-            } else throw new IllegalVariableCasting(this, exitingVariable);
+    private Data<?> extractData(String dataStr, boolean isFromCallsHandler) throws VariableError {
+        // checks for an already existing variable or argument
+        Variable existingVariable = getExistsInVariablesOrArguments(dataStr);
+        if (existingVariable != null){
+
+//            if (!existingVariable.isArgument && isFromCallsHandler && !existingVariable.isInitialized)
+//                throw new UninitializedParameter(existingVariable.getName());
+
+            if (!existingVariable.isArgument && !existingVariable.isInitialized)
+                throw new UninitializedParameter(existingVariable.getName());
+
+            else if (this.getType().equals(existingVariable.getType()) ||
+                    (this.type == Type.DOUBLE && existingVariable.getType().equals("INT")) ||
+                    (this.type == Type.BOOLEAN && existingVariable.getType().equals("INT")
+                            || existingVariable.getType().equals("DOUBLE"))) {
+                return existingVariable.getDataObject();
+            } else  throw new IllegalVariableCasting(this, existingVariable);
         }
 
+        // if there is no existing variable or argument
         Matcher matcher = this.type.valuePattern.matcher(dataStr);
         if (!matcher.find()) throw new BadVariableData(this, dataStr);
         switch (this.type) {
@@ -272,6 +267,14 @@ public class Variable {
         }
         return null;
     }
+
+    private Variable getExistsInVariablesOrArguments(String dataStr){
+        if (existingVariables.containsKey(dataStr)) {
+            return existingVariables.get(dataStr);
+        } else return existingArguments.getOrDefault(dataStr, null);
+    }
+
+
 
     /**
      * Sets the Variable data to the given data.

@@ -46,7 +46,7 @@ public class Scondition extends Scope {
      * @throws MissingCondition If the condition is missing (an empty string).
      */
     private void extractCondition() throws MissingCondition, EmptyCondition {
-        Pattern pattern = Pattern.compile("^\\s*(if|while)(\\s*)*\\((.*)\\)\\s*$");
+        Pattern pattern = Pattern.compile("^\\s*(if|while)(\\s*)*\\((.*)\\)\\s*");
         Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
         matcher.find();
         String condition = matcher.group(3).trim();
@@ -128,7 +128,7 @@ public class Scondition extends Scope {
             return (Variable.existingArguments.get(variable).getType().equals("INT") ||
                     Variable.existingArguments.get(variable).getType().equals("DOUBLE"));
         }
-        throw new VariableDoesNotExist(variable);
+        return false;
     }
 
     /**

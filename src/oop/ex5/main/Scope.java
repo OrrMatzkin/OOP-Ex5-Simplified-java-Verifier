@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  */
 public class Scope {
 
-    public static Scope globalSocpe;
+    public static Scope globalScope;
 
     /**
      * A HashMap of all the scope variables.
@@ -64,7 +64,7 @@ public class Scope {
      */
     public Scope(List<String> scopeData, Scope outerScope, String name) {
         this.name = name;
-        if (this.name.equals("Global Scope")) Scope.globalSocpe = this;
+        if (this.name.equals("Global Scope")) Scope.globalScope = this;
 //        System.out.println("----------------");
 //        for (String line: scopeData) {
 //            System.out.println(line); }
@@ -120,8 +120,8 @@ public class Scope {
             throws ScopeError, MethodError, VariableError {
         // System.out.println("// line ends with '{' //");
 
-        Pattern pattern1 = Pattern.compile("^\\s*(if|while)(\\s*)*\\(.*\\)\\s*$");
-        Pattern pattern2 = Pattern.compile("^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(\\w* *.*\\)\\s*$");
+        Pattern pattern1 = Pattern.compile("^\\s*(if|while)(\\s*)*\\(.*\\)\\s*");
+        Pattern pattern2 = Pattern.compile("^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(.*\\)\\s*");
 
         // matcher (without the "{")
         Matcher matcher1 = pattern1.matcher(line.substring(0, line.length() - 1));
@@ -197,7 +197,8 @@ public class Scope {
      * @throws InvalidMethodCall If a method is called not from the global scope.
      */
     private void singleLineCommand(String line) throws VariableError, InvalidCommand, InvalidMethodCall {
-        String trimmedLine = line.substring(0,line.length()-1).trim();
+        String trimmedLine = line.trim();
+        trimmedLine = trimmedLine.substring(0,trimmedLine.length()-1);
         // New Variable declarations
         if (possibleVariableDeclaration(line)) {
             // System.out.println("// creates new variables //");
@@ -205,7 +206,7 @@ public class Scope {
         }
         // A Method call
         else if (possibleMethodCall(line)) {
-            if (!callFromMethod()) throw new InvalidMethodCall(line.substring(0, line.length()-1).trim());
+            if (!callFromMethod()) throw new InvalidMethodCall(line);
             // System.out.println("// added a new possible call //");
             CallsHandler.addCall(line);
         }
@@ -241,7 +242,7 @@ public class Scope {
     private boolean isReturnLine(String line) {
         Pattern pattern = Pattern.compile("^\\s*return\\s*;\\s*$");
         Matcher matcher = pattern.matcher(line);
-        return matcher.find() && this instanceof Method;
+        return matcher.find() && callFromMethod();
     }
 
     /**
@@ -317,7 +318,10 @@ public class Scope {
         line = line.replaceFirst(configStr, "");
         String[] variablesStr = line.split(",");
         for (String variableStr: variablesStr) {
-            Variable variable = new Variable(configStr + variableStr.trim(), false, this);
+
+            Variable variable = new Variable(configStr +
+                    variableStr.trim(), false, this);
+            //TODO: aviram idiot (test 251)
             this.variables.put(variable.getName(), variable);
         }
     }

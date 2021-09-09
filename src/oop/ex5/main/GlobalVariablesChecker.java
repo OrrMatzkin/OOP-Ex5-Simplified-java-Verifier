@@ -45,7 +45,7 @@ public class GlobalVariablesChecker {
      * @throws VariableError
      */
     public static void checkGlobalAssignments() throws VariableError {
-        Scope curScope = Scope.globalSocpe;
+        Scope curScope = Scope.globalScope;
         Pattern pattern = Pattern.compile("^(\\S+) *= *(\\S+)$");
         for (String possibleAssignment : globalVariablesAssignments) {
             Matcher matcher = pattern.matcher(possibleAssignment);

@@ -55,7 +55,7 @@ public class Method extends Scope {
      * @return A String which holds the method's name or the method's arguments.
      */
     private String getInfo(String kind) {
-        Pattern pattern = Pattern.compile("^\\s*void(\\s*)(\\w+)\\s*(\\(\\w* *.*\\))\\s*$");
+        Pattern pattern = Pattern.compile("^\\s*void(\\s*)(\\w+)\\s*(\\(.*\\))\\s*");
         Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
         matcher.find();
         switch (kind) {

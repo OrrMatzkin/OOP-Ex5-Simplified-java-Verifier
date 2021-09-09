@@ -185,12 +185,27 @@ class VariableInitInMethodDeclaration extends VariableError {
     }
 }
 
+/**
+ * Uninitialized Variable.
+ */
 class UninitializedVariable extends VariableError {
     /**
      * The Error constructor.
      */
     UninitializedVariable(String variable) {
         super(variable + " is uninitialized.");
+    }
+}
+
+/**
+ * Uninitialized final Variable.
+ */
+class UninitializedFinalVariable extends VariableError {
+    /**
+     * The Error constructor.
+     */
+    UninitializedFinalVariable(String variable) {
+        super("Final " + variable + " is uninitialized.");
     }
 }
 

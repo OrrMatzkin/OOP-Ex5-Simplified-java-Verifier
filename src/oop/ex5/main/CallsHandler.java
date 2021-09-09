@@ -52,7 +52,7 @@ public class CallsHandler {
     }
 
 
-    public void callValidity() throws Exception{
+    public void callValidity() throws BadArgumentsNum, VariableError, MethodDoesNotExist {
         Pattern pattern = Pattern.compile("\\s*([a-zA-Z0-9_]+)\\s*(\\(.*\\))\\s*");
         Matcher matcher;
         String methodName;
@@ -73,7 +73,7 @@ public class CallsHandler {
         }
     }
 
-    public void checkPossibleArguments(Method scope, String arguments) throws Exception{
+    public void checkPossibleArguments(Method scope, String arguments) throws BadArgumentsNum, VariableError {
 
         String[] splitted = arguments.split(",");
         if (splitted[0].equals("") && scope.arguments.size() == 0) {
@@ -88,30 +88,10 @@ public class CallsHandler {
         List<Variable> orderdArguments = new ArrayList<>(scope.arguments.values());
         for (int i = 0; i < splitted.length; i++) {
 
-//            if (Variable.existingVariables.containsKey(splitted[i])) {
-//                if (!Variable.existingVariables.get(splitted[i]).isInitialized()) {
-//                    System.out.println("// variable not initialized in scope: " + scope.getName() + "//");
-//                    throw new Exception();
-//                }
-//                else
                 orderdArguments.get(i).setData(splitted[i].trim(), true);
 
-//            else {
-//                System.out.println("// variable not exist " + splitted[i] + "//");
-//                throw new Exception();
-//            }
-
-
-//            scope.givenArguments.get(i).setData(splitted[i].trim());
         }
     }
-
-//    public void checkCallPosition(Call method){
-//        Scope outerScope = method.outerScope;
-//        while (outerScope != null){
-//            if outerScope
-//        }
-//    }
 
 
 }
