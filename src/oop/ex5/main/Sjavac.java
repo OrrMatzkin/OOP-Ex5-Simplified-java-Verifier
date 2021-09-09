@@ -7,7 +7,6 @@ import java.util.zip.DataFormatException;
 
 public class Sjavac {
     public static void main(String[] args) throws FileNotFoundException, DataFormatException, Exception {
-
         if (args.length < 1) throw new IllegalArgumentException("Please enter the source Sjava file name.");
         List<String> fileContent = getSjavaLines(args[0]);
         CallsHandler callsHandler = CallsHandler.getSingleInstance();
@@ -15,7 +14,7 @@ public class Sjavac {
 
         scope.scan();
         callsHandler.callValidity();
-
+        GlobalVariablesChecker.checkGlobalAssignments();
     }
 
     /**
@@ -30,27 +29,6 @@ public class Sjavac {
         Reader reader = new Reader(filePath);
         reader.readFile();
         return reader.getFileContent();
-
     }
 
 }
-
-
-//TODO: In a case of an un-initialized global variable
-// (meaning it is not assigned a value anywhere outside a method),
-// all methods may refer to it (regardless of their location in relation to its declaration),
-// but every method using it (in an assignment, as an argument to a method call)
-// must first assign a value to the global variable itself
-// (even if it was assigned a value in some other method).
-
-
-
-//TODO: multiple conditions separated by AND/OR may appear (e.g., if ( a || b || c) {).
-// You are not required to support conditions containing brackets, like if((a||b)&&c...) {
-
-//TODO: what the hell does this mean??? -> if/while blocks can be nested to a practically unlimited depth
-// (i.e. you should support a depth of at least java.lang.Integer.MAX VALUE)
-
-//TODO: make the final catches and deletes all the system.out.prints
-
-

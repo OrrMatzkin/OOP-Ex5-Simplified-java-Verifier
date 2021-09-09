@@ -1,5 +1,6 @@
 package oop.ex5.main;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,6 +15,10 @@ public class Scondition extends Scope {
      * declaration line).
      */
     private final String declaration;
+
+
+    private List<String> conditions = new ArrayList<>();
+
 
     /**
      * the Scondition Class constructor.
@@ -38,18 +43,48 @@ public class Scondition extends Scope {
 
     /**
      * Extracts the if/while condition, in order to check its validity.
-     * @return The condition (as String).
      * @throws MissingCondition If the condition is missing (an empty string).
      */
-    private String extractCondition() throws MissingCondition {
+    private void extractCondition() throws MissingCondition, EmptyCondition {
         Pattern pattern = Pattern.compile("^\\s*(if|while)(\\s*)*\\((.*)\\)\\s*$");
         Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
         matcher.find();
         String condition = matcher.group(3).trim();
         System.out.println("// condition is: " + condition + " //\n");
         if (condition.isEmpty()) throw new MissingCondition();
-        return condition;
+        checkMultipleCondition(condition);
     }
+
+    /**
+     * This method checks if the given condition contains multiple conditions, according
+     * to the s-Java's syntax.
+     * @param condition The condition to be checked.
+     * @throws EmptyCondition In case any of the given conditions is empty.
+     */
+    private void checkMultipleCondition(String condition) throws EmptyCondition{
+        if (condition.contains("||")) splitCondition(condition, "\\|\\|");
+        else if (condition.contains("&&")) splitCondition(condition, "\\&\\&");
+        else this.conditions.add(condition);
+    }
+
+
+    /**
+     * This method splits a String of multiple conditions into individual conditions,
+     * according to a given buffer (the OR / AND s-Java operators).
+     * @param condition a String of multiple conditions.
+     * @param buffer OR / AND operators.
+     * @throws EmptyCondition In case any of the given conditions is empty.
+     */
+    private void splitCondition(String condition, String buffer) throws EmptyCondition{
+        String[] splitted = condition.split(buffer);
+        // check if all conditions are valid
+        for (String splitCondition: splitted) {
+            System.out.println("splitted " + splitCondition);
+            if (splitCondition.trim().isEmpty()) throw new EmptyCondition();
+            this.conditions.add(splitCondition);
+        }
+    }
+
 
     /**
      * Checks if the condition is valid.
@@ -58,10 +93,12 @@ public class Scondition extends Scope {
      * @throws MissingCondition If the condition is missing (an empty string).
      */
     private void checkConditionValidity() throws InvalidConditionException, VariableDoesNotExist, MissingCondition {
-        String condition = extractCondition().trim();
-        if (checkBooleanReservedWord(condition) || checkStringCondition(condition)
-        || checkVariableType(condition)) return;
-        throw new InvalidConditionException(condition);
+        for (String condition: this.conditions) {
+            condition = condition.trim();
+            if (!(checkBooleanReservedWord(condition) || checkStringCondition(condition)
+                    || checkVariableType(condition)))
+            throw new InvalidConditionException(condition);
+        }
     }
 
     /**

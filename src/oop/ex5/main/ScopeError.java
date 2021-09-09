@@ -88,3 +88,15 @@ class MissingCondition extends ScopeError {
         super("The If/While s-Java condition is missing.");
     }
 }
+
+/**
+ * in case of a missing condition.
+ */
+class EmptyCondition extends ScopeError {
+    /**
+     * The Error constructor.
+     */
+    public EmptyCondition() {
+        super("There is an empty condition in the code.");
+    }
+}

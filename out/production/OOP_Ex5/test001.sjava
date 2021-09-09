@@ -1,15 +1,8 @@
-
-    foo2();
-
-void foo(){
-
-
-
+void a(int k) {
+a = 5;
+b = "hello";
 return;
 }
 
-void foo2(){
-
-
-return;
-}
+int a;
+String b;

@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
  */
 public class Scope {
 
+    public static Scope globalSocpe;
+
     /**
      * A HashMap of all the scope variables.
      */
@@ -53,6 +55,7 @@ public class Scope {
      */
     protected String name;
 
+
     /**
      * The Scope Class constructor.
      * @param scopeData The scope code lines.
@@ -61,6 +64,7 @@ public class Scope {
      */
     public Scope(List<String> scopeData, Scope outerScope, String name) {
         this.name = name;
+        if (this.name.equals("Global Scope")) Scope.globalSocpe = this;
 //        System.out.println("----------------");
 //        for (String line: scopeData) {
 //            System.out.println(line); }
@@ -287,7 +291,10 @@ public class Scope {
                     }
                     curScope = curScope.outerScope;
                 }
-                throw new VariableDoesNotExist(matcher.group(1));
+                if (this instanceof Method) {
+                GlobalVariablesChecker.addAssigment(possibleAssignment);
+                System.out.println("// Global variable added //"); }
+                else throw new VariableDoesNotExist(matcher.group(1));
             } else
                 throw new InvalidCommand(line);
         }
