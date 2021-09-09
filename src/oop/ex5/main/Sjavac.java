@@ -18,10 +18,13 @@ public class Sjavac {
             callsHandler.callValidity();
             GlobalVariablesChecker.checkGlobalAssignments();
             GlobalVariablesChecker.checkGlobalDeclaration();
+            GlobalVariablesChecker.checkGlobalCondition();
         }
         catch (DataFormatException | FileNotFoundException | IllegalArgumentException e ) {
             System.out.println("2");
+            e.printStackTrace();
             System.err.println(e);
+
             return;
         }
         catch (VariableError | ScopeError | MethodError e) {
@@ -36,10 +39,13 @@ public class Sjavac {
             Method.allMethods.clear();
             CallsHandler.calls.clear();
             GlobalVariablesChecker.globalVariablesAssignments.clear();
+            GlobalVariablesChecker.globalVariablesDeclaration.clear();
+            GlobalVariablesChecker.globalVariablesCondition.clear();
             Scope.globalScope = null;
         }
 
         System.out.println("0");
+
     }
 
     /**

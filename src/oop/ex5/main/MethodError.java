@@ -129,7 +129,7 @@ class BadArgumentsNum extends MethodError {
      */
     BadArgumentsNum(String name) {
         super("Actual and formal argument lists of method '" +
-                name + "' differ in length");
+                name + "' differ in length.");
     }
 }
 

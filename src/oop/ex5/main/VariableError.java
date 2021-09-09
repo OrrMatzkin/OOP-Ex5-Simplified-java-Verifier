@@ -209,4 +209,18 @@ class UninitializedFinalVariable extends VariableError {
     }
 }
 
+/**
+ * self assigning a variable.
+ */
+class SelfAssign extends VariableError {
+    /**
+     * The Error constructor.
+     */
+    SelfAssign(String variable) {
+        super("Variable '"+variable+"' might not have been initialized.");
+    }
+}
+
+
+
 

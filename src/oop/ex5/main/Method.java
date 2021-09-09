@@ -72,13 +72,14 @@ public class Method extends Scope {
      * Decomposes the arguments String into individual arguments.
      * @throws VariableError If there is Variable error.
      */
-    private void processArguments() throws VariableError{
+    private void processArguments() throws VariableError, BadArgumentsNum {
         String arguments = getInfo("arguments");
         arguments = arguments.substring(1, arguments.length()-1).trim();
         String[] splitted = arguments.split(",");
         // System.out.println(arguments);
         for (String argument: splitted) {
-            if (argument.equals("")) continue;
+            if (argument.isEmpty() && splitted.length != 1) throw new BadArgumentsNum(this.name);
+            else if (argument.isEmpty()) return;
             // System.out.println("// checking argument " + argument.trim()+ " //");
             Variable variable =  new Variable(argument.trim(), true, this);
             this.arguments.put(variable.getName(), variable);

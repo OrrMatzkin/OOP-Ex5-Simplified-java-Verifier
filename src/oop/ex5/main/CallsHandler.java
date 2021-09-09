@@ -88,7 +88,7 @@ public class CallsHandler {
         List<Variable> orderdArguments = new ArrayList<>(scope.arguments.values());
         for (int i = 0; i < splitted.length; i++) {
 
-                orderdArguments.get(i).setData(splitted[i].trim(), true);
+                orderdArguments.get(i).setData(splitted[i].trim(), true, Scope.globalScope);
 
         }
     }

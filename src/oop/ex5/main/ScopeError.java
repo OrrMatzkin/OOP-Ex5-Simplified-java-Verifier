@@ -100,3 +100,15 @@ class EmptyCondition extends ScopeError {
         super("There is an empty condition in the code.");
     }
 }
+
+/**
+ * in case of a missing condition.
+ */
+class ConditionDeclarationNotFromMethod extends ScopeError {
+    /**
+     * The Error constructor.
+     */
+    public ConditionDeclarationNotFromMethod() {
+        super("Condition Scope cannot be declared from the global Scope.");
+    }
+}

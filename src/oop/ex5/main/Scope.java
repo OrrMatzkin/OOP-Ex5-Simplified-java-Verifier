@@ -1,11 +1,13 @@
 package oop.ex5.main;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 
 /**
@@ -178,8 +180,11 @@ public class Scope {
             this.innerScopes.add(method);
         }
         else {
-            Scondition scondition = new Scondition(innerScopeData, this, name);
-            this.innerScopes.add(scondition);
+            if (callFromMethod()) {
+                Scondition scondition = new Scondition(innerScopeData, this, name);
+                this.innerScopes.add(scondition);
+            }
+            else throw new ConditionDeclarationNotFromMethod();
         }
         return innerScopeSize;
     }
@@ -196,11 +201,11 @@ public class Scope {
      * @throws InvalidCommand If there is an invalid command in one of the scope lines.
      * @throws InvalidMethodCall If a method is called not from the global scope.
      */
-    public void singleLineCommand(String line) throws VariableError, InvalidCommand, InvalidMethodCall {
+    public void singleLineCommand(String line) throws VariableError, InvalidCommand, InvalidMethodCall, InvalidSyntax {
         String trimmedLine = line.trim();
         trimmedLine = trimmedLine.substring(0,trimmedLine.length()-1);
         // New Variable declarations
-        if (possibleVariableDeclaration(line)) {
+        if (possibleVariableDeclaration(trimmedLine)) {
             // System.out.println("// creates new variables //");
             declareNewVariables(trimmedLine);
         }
@@ -212,12 +217,10 @@ public class Scope {
         }
         // A return statement
         else if (isReturnLine(line)) {
-            this.variables.forEach((k, v) -> v.delete());
-            this.arguments.forEach((k, a) -> a.delete());
         }
         // A Variable assignments
         else {
-            // System.out.println("// assign variables //");
+//             System.out.println("// assign variables //");
             assignExistingVariable(trimmedLine);
         }
     }
@@ -275,7 +278,7 @@ public class Scope {
      * @throws InvalidCommand If there is an invalid command (not an assignment).
      */
     private void assignExistingVariable(String line) throws VariableError, InvalidCommand{
-        Pattern pattern = Pattern.compile("^(\\S+) *= *(\\S+)$");
+        Pattern pattern = Pattern.compile("^(\\S+)\\s*=\\s*(\\S+)$");
         String[] assignmentsStr = line.split(",");
         for (String possibleAssignment: assignmentsStr){
             Matcher matcher = pattern.matcher(possibleAssignment);
@@ -283,16 +286,16 @@ public class Scope {
                 Scope curScope = this;
                 while (curScope != null) {
                     if (curScope.arguments.containsKey(matcher.group(1))) {
-                        curScope.arguments.get(matcher.group(1)).setData(matcher.group(2), false);
+                        curScope.arguments.get(matcher.group(1)).setData(matcher.group(2), false, this);
                         return;
                     }
                     if (curScope.variables.containsKey(matcher.group(1))) {
-                        curScope.variables.get(matcher.group(1)).setData(matcher.group(2), false);
+                        curScope.variables.get(matcher.group(1)).setData(matcher.group(2), false, this);
                         return;
                     }
                     curScope = curScope.outerScope;
                 }
-                if (this instanceof Method) {
+                if (callFromMethod()) {
                 GlobalVariablesChecker.addAssigment(possibleAssignment); }
                 // System.out.println("// Global variable added //"); }
                 else throw new VariableDoesNotExist(matcher.group(1));
@@ -306,8 +309,9 @@ public class Scope {
      * Tries to create new variables.
      * @param line The line to be checked.
      * @throws VariableError If one of the possible deceleration fails.
+     *todo:ff
      */
-    private void declareNewVariables(String line) throws VariableError {
+    private void declareNewVariables(String line) throws VariableError, InvalidSyntax {
         String configStr = "";
         String[] separatedWords = line.split(" ");
         if (separatedWords.length >= 2) {
@@ -315,10 +319,15 @@ public class Scope {
             if (separatedWords[0].equals("final"))
                 configStr += separatedWords[1] + " ";
         }
-        line = line.replaceFirst(configStr, "");
+        try {
+        line = line.replaceFirst(configStr, ""); }
+        catch (PatternSyntaxException e){
+            throw new BadVariableDeclaration(line,false);
+        }
+        if (line.endsWith(",")) throw new BadVariableDeclaration(line,false);
         String[] variablesStr = line.split(",");
         for (String variableStr: variablesStr) {
-
+            if (variableStr.isEmpty()) throw new InvalidSyntax(line);
             Variable variable = new Variable(configStr +
                     variableStr.trim(), false, this);
             this.variables.put(variable.getName(), variable);

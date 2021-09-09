@@ -18,6 +18,7 @@ public class Variable {
      * All the current existing arguments in the program sorted in a HashMap <name, Variable objects>.
      */
     public static HashMap<String, Variable> existingArguments = new HashMap<>();
+
     /**
      * A Type Enum.
      */
@@ -115,9 +116,14 @@ public class Variable {
     private Type type;
 
     /**
-     * The scope who created this variable.
+     * The scope from which the variable was created.
      */
-    private final Scope scope;
+    public final Scope declaredScope;
+
+    /**
+     * The scope from which the variable was initialized.
+     */
+    public Scope initializedScope = null;
 
     /**
      * A boolean representing if the variable is initialized.
@@ -136,18 +142,19 @@ public class Variable {
 
     /**
      * The Contractor of the Variable.
+     *
      * @param initializeLine The initializing line (trimmed!)
-     * @param isArgument True if this variable should is, else false.
+     * @param isArgument     True if this variable should is, else false.
      * @throws VariableError When the Variable declaration goes wrong.
      */
-    public Variable(String initializeLine, boolean isArgument, Scope scope) throws VariableError {
-        this.scope = scope;
+    public Variable(String initializeLine, boolean isArgument, Scope declaredScope) throws VariableError {
+        this.declaredScope = declaredScope;
         this.isArgument = isArgument;
         this.isFinal = initializeLine.startsWith("final");
-            updateParameters(isFinal ? initializeLine.replaceFirst("final", "")
-                    : initializeLine);
-            if (this.isArgument) existingArguments.put(this.name, this);
-            else existingVariables.put(this.name, this);
+        updateParameters(isFinal ? initializeLine.replaceFirst("final", "")
+                : initializeLine);
+        if (this.isArgument) existingArguments.put(this.name, this);
+        else existingVariables.put(this.name, this);
     }
 
     /**
@@ -157,19 +164,20 @@ public class Variable {
      * @throws VariableError If updating the parameter is unsuccessful it throws a VariableError.
      */
     public void updateParameters(String initializeLine) throws VariableError {
-        Matcher fullMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)\\s*=\\s*(\\S+)$").matcher(initializeLine.trim());
+        Matcher fullMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)\\s*=\\s*(.*)$").matcher(initializeLine.trim());
         Matcher partMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)$").matcher(initializeLine.trim());
         // with initialization (<Type> <Name> <=> <Data>)
         if (fullMatcher.find()) {
             if (this.isArgument) throw new VariableInitInMethodDeclaration(fullMatcher.group(2));
             this.type = extractType(fullMatcher.group(1));
             this.name = extractName(fullMatcher.group(2));
-            this.data = extractData(fullMatcher.group(3), false, initializeLine.trim());
+            this.data = extractData(fullMatcher.group(3), false, initializeLine.trim(), this.declaredScope);
             this.isInitialized = true;
+            this.initializedScope = declaredScope;
         }
         // if this is variable is not going to be initialized yet (<Type> <Name>)
         else if (partMatcher.find()) {
-            if (this.isFinal) throw new UninitializedFinalVariable(partMatcher.group(2));
+            if (this.isFinal && !this.isArgument) throw new UninitializedFinalVariable(partMatcher.group(2));
             this.type = extractType(partMatcher.group(1));
             this.name = extractName(partMatcher.group(2));
             this.isInitialized = false;
@@ -203,7 +211,7 @@ public class Variable {
      */
     public String extractName(String nameStr) throws VariableError {
         // if the name is already taken in this scope
-        if (this.scope.variables.containsKey(nameStr) || this.scope.arguments.containsKey(nameStr))
+        if (this.declaredScope.variables.containsKey(nameStr) || this.declaredScope.arguments.containsKey(nameStr))
             throw new BadVariableNameAlreadyExists(nameStr);
         // if the name starts with a digit
         if (Pattern.compile("^\\d").matcher(nameStr).find()) {
@@ -228,33 +236,39 @@ public class Variable {
      * @return The matching Data class with the a data value.
      * @throws VariableError If the Variable data is invalid.
      */
-    public Data<?> extractData(String dataStr, boolean isFromCallsHandler, String initializeLine) throws VariableError {
+    public Data<?> extractData(String dataStr, boolean isFromCallsHandler, String initializeLine, Scope scope) throws VariableError {
         // checks for an already existing variable or argument
         Variable existingVariable = getExistsInVariablesOrArguments(dataStr);
-        if (existingVariable != null){
+        if (existingVariable != null) {
+
 
 //            if (!existingVariable.isArgument && isFromCallsHandler && !existingVariable.isInitialized)
 //                throw new UninitializedParameter(existingVariable.getName());
 
-            if (!existingVariable.isArgument && !existingVariable.isInitialized)
+            if (!existingVariable.isArgument &&
+                    (!existingVariable.isInitialized || !initializedInOuterScope(existingVariable, scope, isFromCallsHandler)))
                 throw new UninitializedParameter(existingVariable.getName());
 
             else if (this.getType().equals(existingVariable.getType()) ||
                     (this.type == Type.DOUBLE && existingVariable.getType().equals("INT")) ||
-                    (this.type == Type.BOOLEAN && existingVariable.getType().equals("INT")
-                            || existingVariable.getType().equals("DOUBLE"))) {
+                    (this.type == Type.BOOLEAN && (existingVariable.getType().equals("INT")
+                            || existingVariable.getType().equals("DOUBLE")))) {
                 return existingVariable.getDataObject();
-            } else  throw new IllegalVariableCasting(this, existingVariable);
+            } else throw new IllegalVariableCasting(this, existingVariable);
         }
 
-        // if there is no existing variable or argument
-        if (this.scope instanceof Method) {
-            GlobalVariablesChecker.addDeclaration(initializeLine);
-            // System.out.println("adding Global declaration " + initializeLine);
-            return null;
-        }
         Matcher matcher = this.type.valuePattern.matcher(dataStr);
-        if (!matcher.find()) throw new BadVariableData(this, dataStr);
+        if (!matcher.find()) {
+            // if the variable is self assigned
+            if (this.name.equals(dataStr)) throw new SelfAssign(this.name);
+            // if there is no existing variable or argument
+            if (this.declaredScope.callFromMethod() && initializeLine != null) {
+                GlobalVariablesChecker.addDeclaration(initializeLine);
+                // System.out.println("adding Global declaration " + initializeLine);
+                return null;
+            } else throw new BadVariableData(this, dataStr);
+        }
+
         switch (this.type) {
             case INT:
                 return new Data<>(Integer.parseInt(dataStr));
@@ -273,23 +287,36 @@ public class Variable {
         return null;
     }
 
-    private Variable getExistsInVariablesOrArguments(String dataStr){
+    private boolean initializedInOuterScope(Variable variable, Scope scope, boolean isFromCallsHandler){
+        if (isFromCallsHandler) return true;
+        while (scope != null){
+            if (variable.initializedScope == scope) return true;
+            else scope = scope.outerScope;
+        }
+        return false;
+
+
+    }
+
+    private Variable getExistsInVariablesOrArguments(String dataStr) {
         if (existingVariables.containsKey(dataStr)) {
             return existingVariables.get(dataStr);
         } else return existingArguments.getOrDefault(dataStr, null);
     }
 
 
-
     /**
      * Sets the Variable data to the given data.
-     * @param dataStr The new Variable Data as a String.
+     *
+     * @param dataStr            The new Variable Data as a String.
      * @param isFromCallsHandler True if the setData method is called from the CallsHandler, else false.
      * @throws VariableError If the Variable data is invalid.
      */
-    public void setData(String dataStr, boolean isFromCallsHandler) throws VariableError {
+    public void setData(String dataStr, boolean isFromCallsHandler, Scope scope) throws VariableError {
         if (this.isFinal && !isFromCallsHandler) throw new IllegalFinalDataChange(this);
-        else this.data = extractData(dataStr, isFromCallsHandler, null);
+        else this.data = extractData(dataStr, isFromCallsHandler, null, scope);
+        this.isInitialized = true;
+        if (this.initializedScope == null) this.initializedScope = scope;
     }
 
     /**

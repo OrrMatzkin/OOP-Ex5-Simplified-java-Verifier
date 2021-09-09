@@ -35,9 +35,10 @@ public class Scondition extends Scope {
         // in order to avoid an infinite loop while scanning the scope's
         // data, we have to remove it's first line (the declaration of the scope)
         this.rawData.remove(0);
+
         extractCondition();
+        checkConditionValidity(this.conditions);
         if (!this.rawData.isEmpty()) scan();
-        checkConditionValidity();
         for (Variable variable: this.variables.values()) variable.delete();
     }
 
@@ -62,9 +63,11 @@ public class Scondition extends Scope {
      * @throws EmptyCondition In case any of the given conditions is empty.
      */
     private void checkMultipleCondition(String condition) throws EmptyCondition{
-        if (condition.contains("||")) splitCondition(condition, "\\|\\|");
-        else if (condition.contains("&&")) splitCondition(condition, "\\&\\&");
-        else this.conditions.add(condition);
+
+        if (condition.contains("||") || condition.contains("&&")) splitCondition(condition);
+        else
+            this.conditions.add(condition);
+
     }
 
 
@@ -72,11 +75,10 @@ public class Scondition extends Scope {
      * This method splits a String of multiple conditions into individual conditions,
      * according to a given buffer (the OR / AND s-Java operators).
      * @param condition a String of multiple conditions.
-     * @param buffer OR / AND operators.
      * @throws EmptyCondition In case any of the given conditions is empty.
      */
-    private void splitCondition(String condition, String buffer) throws EmptyCondition{
-        String[] splitted = condition.split(buffer);
+    private void splitCondition(String condition) throws EmptyCondition{
+        String[] splitted = condition.split("\\|\\||\\&\\&");
         // check if all conditions are valid
         for (String splitCondition: splitted) {
             // System.out.println("splitted " + splitCondition);
@@ -92,12 +94,17 @@ public class Scondition extends Scope {
      * @throws VariableDoesNotExist If the variable in the condition does not exist.
      * @throws MissingCondition If the condition is missing (an empty string).
      */
-    private void checkConditionValidity() throws InvalidConditionException, VariableDoesNotExist, MissingCondition, UninitializedVariable {
-        for (String condition: this.conditions) {
+    public void checkConditionValidity(List<String> conditions) throws InvalidConditionException, VariableDoesNotExist, MissingCondition, UninitializedVariable {
+        for (String condition: conditions) {
             condition = condition.trim();
+
             if (!checkBooleanReservedWord(condition) && !checkVariableType(condition) &&
-                    !checkStringCondition(condition))
-                throw new InvalidConditionException(condition);
+                    !checkStringCondition(condition)) {
+                if (!checkVariableType(condition) && callFromMethod()) {
+                    GlobalVariablesChecker.addCondition(condition, this);
+                }
+                else throw new InvalidConditionException(condition);
+            }
         }
     }
 
@@ -106,7 +113,7 @@ public class Scondition extends Scope {
      * @param condition The condition string.
      * @return True if the condition is a boolean keyword, false elsewhere.
      */
-    private boolean checkBooleanReservedWord(String condition) {
+    public boolean checkBooleanReservedWord(String condition) {
         return condition.equals("true") || condition.equals("false");
     }
 
@@ -116,16 +123,18 @@ public class Scondition extends Scope {
      * @return True if the existing variable is an int or a double
      * @throws VariableDoesNotExist If the varible does not exist.
      */
-    private boolean checkVariableType(String variable) throws VariableDoesNotExist, UninitializedVariable {
+    public boolean checkVariableType(String variable) throws VariableDoesNotExist, UninitializedVariable {
         if (Variable.existingVariables.containsKey(variable)) {
             if (!Variable.existingVariables.get(variable).isInitialized())
                 throw new UninitializedVariable(variable);
             else {
-                return (Variable.existingVariables.get(variable).getType().equals("INT") ||
+                return (Variable.existingVariables.get(variable).getType().equals("BOOLEAN") ||
+                        Variable.existingVariables.get(variable).getType().equals("INT") ||
                         Variable.existingVariables.get(variable).getType().equals("DOUBLE"));
             }
         } else if (Variable.existingArguments.containsKey(variable)) {
-            return (Variable.existingArguments.get(variable).getType().equals("INT") ||
+            return (Variable.existingVariables.get(variable).getType().equals("BOOLEAN") ||
+                    Variable.existingArguments.get(variable).getType().equals("INT") ||
                     Variable.existingArguments.get(variable).getType().equals("DOUBLE"));
         }
         return false;
@@ -136,7 +145,7 @@ public class Scondition extends Scope {
      * @param condition The string condition
      * @return true if the condition is valid, false elsewhere.
      */
-    private boolean checkStringCondition(String condition)  {
+    public boolean checkStringCondition(String condition)  {
         Variable intVar, doubleVar, booleanVar;
         boolean[] checkArr = {true, true, true};
         // try to create the test variables
@@ -149,19 +158,19 @@ public class Scondition extends Scope {
         }
         // try to set the given condition
         try {
-            intVar.setData(condition, false);
+            intVar.setData(condition, false, this);
         }
         catch (VariableError  e) {
             checkArr[0] = false;
         }
         try {
-            doubleVar.setData(condition, false);
+            doubleVar.setData(condition, false, this);
         }
         catch (VariableError e) {
             checkArr[1] = false;
         }
         try {
-            booleanVar.setData(condition,false);
+            booleanVar.setData(condition,false, this);
         }
         catch (VariableError e) {
             checkArr[2] = false;
@@ -170,6 +179,9 @@ public class Scondition extends Scope {
         Variable.existingVariables.remove("int check_int");
         Variable.existingVariables.remove("double check_double");
         Variable.existingVariables.remove("boolean check_boolean");
+        intVar.delete();
+        doubleVar.delete();
+        booleanVar.delete();
 
         // if one if the data set is valid (true) it will return true;
         return checkArr[0] || checkArr[1] || checkArr[2];
