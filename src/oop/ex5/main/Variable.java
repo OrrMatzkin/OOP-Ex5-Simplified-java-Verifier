@@ -229,10 +229,11 @@ public class Variable {
      */
     private Data<?> extractData(String dataStr, boolean isFromCallsHandler)
             throws VariableError {
+        //TODO: Orr fix this you idiot
         if (existingVariables.containsKey(dataStr)) {
             Variable exitingVariable = existingVariables.get(dataStr);
             if (isFromCallsHandler && !exitingVariable.isInitialized) {
-                System.out.println("// un-initialized variable //");
+                // System.out.println("// un-initialized variable //");
                 throw new UninitializedParameter(exitingVariable.getName());
             }
             if (this.getType().equals(exitingVariable.getType()) ||
@@ -242,6 +243,16 @@ public class Variable {
                 return exitingVariable.getDataObject();
             } else throw new IllegalVariableCasting(this, exitingVariable);
         }
+        if (existingArguments.containsKey(dataStr)) {
+            Variable exitingVariable = existingArguments.get(dataStr);
+            if (this.getType().equals(exitingVariable.getType()) ||
+                    (this.type == Type.DOUBLE && exitingVariable.getType().equals("INT")) ||
+                    (this.type == Type.BOOLEAN && exitingVariable.getType().equals("INT")
+                            || exitingVariable.getType().equals("DOUBLE"))) {
+                return exitingVariable.getDataObject();
+            } else throw new IllegalVariableCasting(this, exitingVariable);
+        }
+
         Matcher matcher = this.type.valuePattern.matcher(dataStr);
         if (!matcher.find()) throw new BadVariableData(this, dataStr);
         switch (this.type) {
@@ -342,5 +353,7 @@ public class Variable {
     public void delete() {
         existingVariables.remove(this.name);
     }
+
+
 }
 

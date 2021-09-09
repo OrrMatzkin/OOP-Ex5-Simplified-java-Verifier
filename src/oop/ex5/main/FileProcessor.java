@@ -78,7 +78,7 @@ public class FileProcessor {
         String[] splitted = line.trim().split("\\s+");
 
         if (splitted.length != 2 && splitted.length != 4) {
-            System.err.println(line + " - wrong declaration structure");
+            // System.err.println(line + " - wrong declaration structure");
             return false;
         }
 
@@ -92,7 +92,7 @@ public class FileProcessor {
         else {
             String operator = splitted[2];
             if (!operator.equals("=")) {
-                System.err.println("missing =");
+                // System.err.println("missing =");
                 return false;
             }
 

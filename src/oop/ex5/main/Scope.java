@@ -118,7 +118,7 @@ public class Scope {
      */
     protected int scopeCreation(String line, int lineNum, int maxLineNum)
             throws ScopeError, MethodError, VariableError {
-        System.out.println("// line ends with '{' //");
+        // System.out.println("// line ends with '{' //");
 
         Pattern pattern1 = Pattern.compile("^\\s*(if|while)(\\s*)*\\(.*\\)\\s*$");
         Pattern pattern2 = Pattern.compile("^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(\\w* *.*\\)\\s*$");
@@ -129,9 +129,9 @@ public class Scope {
 
         // if/while statement
         if (matcher1.find()) {
-            System.out.println("// creates new if/while scope //");
+            // System.out.println("// creates new if/while scope //");
             int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "ifWhile", line);
-            System.out.println("// if/while scope's size is : "+ innerScopeSize + "//\n");
+            // System.out.println("// if/while scope's size is : "+ innerScopeSize + "//\n");
             return innerScopeSize;
         }
         // a method declaration statement
@@ -140,9 +140,9 @@ public class Scope {
                 if (this.outerScope != null) {
                     throw new InvalidMethodCreation(matcher2.group(3));
                 }
-                System.out.println("// creates new method scope //");
+                // System.out.println("// creates new method scope //");
                 int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "method", matcher2.group(3));
-                System.out.println("// method's size is : "+ innerScopeSize + "//\n");
+                // System.out.println("// method's size is : "+ innerScopeSize + "//\n");
                 return innerScopeSize;
             } else throw new BadMethodType(matcher2.group(1));
         }
@@ -200,13 +200,13 @@ public class Scope {
         String trimmedLine = line.substring(0,line.length()-1).trim();
         // New Variable declarations
         if (possibleVariableDeclaration(line)) {
-            System.out.println("// creates new variables //");
+            // System.out.println("// creates new variables //");
             declareNewVariables(trimmedLine);
         }
         // A Method call
         else if (possibleMethodCall(line)) {
             if (!callFromMethod()) throw new InvalidMethodCall(line.substring(0, line.length()-1).trim());
-            System.out.println("// added a new possible call //");
+            // System.out.println("// added a new possible call //");
             CallsHandler.addCall(line);
         }
         // A return statement
@@ -216,7 +216,7 @@ public class Scope {
         }
         // A Variable assignments
         else {
-            System.out.println("// assign variables //");
+            // System.out.println("// assign variables //");
             assignExistingVariable(trimmedLine);
         }
     }
@@ -292,8 +292,8 @@ public class Scope {
                     curScope = curScope.outerScope;
                 }
                 if (this instanceof Method) {
-                GlobalVariablesChecker.addAssigment(possibleAssignment);
-                System.out.println("// Global variable added //"); }
+                GlobalVariablesChecker.addAssigment(possibleAssignment); }
+                // System.out.println("// Global variable added //"); }
                 else throw new VariableDoesNotExist(matcher.group(1));
             } else
                 throw new InvalidCommand(line);

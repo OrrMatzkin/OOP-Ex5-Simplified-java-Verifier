@@ -47,7 +47,7 @@ public class CallsHandler {
 
     public void print() {
         for (String call: calls) {
-            System.out.println(call);
+            // System.out.println(call);
         }
     }
 
@@ -65,7 +65,7 @@ public class CallsHandler {
             if (Method.allMethods.containsKey(methodName)) {
                 checkPossibleArguments(Method.allMethods.get(methodName), arguments);
 //                checkCallPosition(call);
-                System.out.println("// valid call //");
+                // System.out.println("// valid call //");
             }
             else {
                 throw new MethodDoesNotExist(methodName);

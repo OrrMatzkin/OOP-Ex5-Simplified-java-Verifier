@@ -1,8 +1,8 @@
-void a(int k) {
-a = 5;
-b = "hello";
+int a = 5;
+
+void k (int p) {
+b = a;
 return;
 }
 
-int a;
-String b;
+int b;

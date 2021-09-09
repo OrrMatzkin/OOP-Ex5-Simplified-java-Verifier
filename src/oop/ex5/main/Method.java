@@ -36,10 +36,10 @@ public class Method extends Scope {
         checkNameValidity();
         processArguments();
         if (!this.rawData.isEmpty()) scan();
-        for (Variable variable: this.variables.values()) {
-            if (!variable.isArgument())
-                variable.delete();
-        }
+//        for (Variable variable: this.variables.values()) {
+//            if (!variable.isArgument())
+//                variable.delete();
+//        }
         if (allMethods.containsKey(this.name)) {
             throw new BadMethodNameAlreadyExists(this.name);
         }
@@ -76,10 +76,10 @@ public class Method extends Scope {
         String arguments = getInfo("arguments");
         arguments = arguments.substring(1, arguments.length()-1).trim();
         String[] splitted = arguments.split(",");
-        System.out.println(arguments);
+        // System.out.println(arguments);
         for (String argument: splitted) {
             if (argument.equals("")) continue;
-            System.out.println("// checking argument " + argument.trim()+ " //");
+            // System.out.println("// checking argument " + argument.trim()+ " //");
             Variable variable =  new Variable(argument.trim(), true, this);
             this.arguments.put(variable.getName(), variable);
         }

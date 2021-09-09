@@ -50,7 +50,7 @@ public class Scondition extends Scope {
         Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
         matcher.find();
         String condition = matcher.group(3).trim();
-        System.out.println("// condition is: " + condition + " //\n");
+        // System.out.println("// condition is: " + condition + " //\n");
         if (condition.isEmpty()) throw new MissingCondition();
         checkMultipleCondition(condition);
     }
@@ -79,7 +79,7 @@ public class Scondition extends Scope {
         String[] splitted = condition.split(buffer);
         // check if all conditions are valid
         for (String splitCondition: splitted) {
-            System.out.println("splitted " + splitCondition);
+            // System.out.println("splitted " + splitCondition);
             if (splitCondition.trim().isEmpty()) throw new EmptyCondition();
             this.conditions.add(splitCondition);
         }
@@ -92,12 +92,12 @@ public class Scondition extends Scope {
      * @throws VariableDoesNotExist If the variable in the condition does not exist.
      * @throws MissingCondition If the condition is missing (an empty string).
      */
-    private void checkConditionValidity() throws InvalidConditionException, VariableDoesNotExist, MissingCondition {
+    private void checkConditionValidity() throws InvalidConditionException, VariableDoesNotExist, MissingCondition, UninitializedVariable {
         for (String condition: this.conditions) {
             condition = condition.trim();
-            if (!(checkBooleanReservedWord(condition) || checkStringCondition(condition)
-                    || checkVariableType(condition)))
-            throw new InvalidConditionException(condition);
+            if (!checkBooleanReservedWord(condition) && !checkVariableType(condition) &&
+                    !checkStringCondition(condition))
+                throw new InvalidConditionException(condition);
         }
     }
 
@@ -116,15 +116,17 @@ public class Scondition extends Scope {
      * @return True if the existing variable is an int or a double
      * @throws VariableDoesNotExist If the varible does not exist.
      */
-    private boolean checkVariableType(String variable) throws VariableDoesNotExist {
-        if (this.variables.containsKey(variable)) {
-            if (this.variables.get(variable).isInitialized()) {
-                return (this.variables.get(variable).getType().equals("INT") ||
-                        this.variables.get(variable).getType().equals("DOUBLE"));
+    private boolean checkVariableType(String variable) throws VariableDoesNotExist, UninitializedVariable {
+        if (Variable.existingVariables.containsKey(variable)) {
+            if (!Variable.existingVariables.get(variable).isInitialized())
+                throw new UninitializedVariable(variable);
+            else {
+                return (Variable.existingVariables.get(variable).getType().equals("INT") ||
+                        Variable.existingVariables.get(variable).getType().equals("DOUBLE"));
             }
-        } else if (this.arguments.containsKey(variable)) {
-            return (this.arguments.get(variable).getType().equals("INT") ||
-                    this.arguments.get(variable).getType().equals("DOUBLE"));
+        } else if (Variable.existingArguments.containsKey(variable)) {
+            return (Variable.existingArguments.get(variable).getType().equals("INT") ||
+                    Variable.existingArguments.get(variable).getType().equals("DOUBLE"));
         }
         throw new VariableDoesNotExist(variable);
     }

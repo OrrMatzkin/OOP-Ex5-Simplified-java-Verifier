@@ -62,7 +62,7 @@ public class GlobalVariablesChecker {
 
     public static void print() {
         for (String dec: globalVariablesAssignments) {
-            System.out.println("GLOBAL: " + dec);
+            // System.out.println("GLOBAL: " + dec);
         }
     }
 

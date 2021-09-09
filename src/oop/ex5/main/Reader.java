@@ -43,8 +43,8 @@ public class Reader {
         try {
             line = this.bufferedReader.readLine();
         } catch (IOException e) {
-            System.out.println("USAGE: Can't read the " +
-                    "file's first line.\n");
+            // System.out.println("USAGE: Can't read the " +
+            //        "file's first line.\n");
         }
 
         // Go over the rest of the file
@@ -55,8 +55,8 @@ public class Reader {
             try {
                 line = this.bufferedReader.readLine();
             } catch (IOException e) {
-                System.out.println("USAGE: Can't read the " +
-                        "file's first line.\n");
+                // System.out.println("USAGE: Can't read the " +
+                //        "file's first line.\n");
             }
         }
         this.fileContent = fileContent;
