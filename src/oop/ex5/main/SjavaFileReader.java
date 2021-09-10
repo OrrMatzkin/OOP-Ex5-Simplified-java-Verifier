@@ -42,6 +42,7 @@ public class SjavaFileReader {
 
     /**
      * This method creates a new BufferedReader instance, and sets it as a class data member.
+     *
      * @throws FileNotFoundException In case the path to the file is invalid.
      */
     public void openReader() throws FileNotFoundException {
@@ -55,6 +56,7 @@ public class SjavaFileReader {
     /**
      * This method extracts data from the commands file into an array, line by line
      * or in case of invalid section structure.
+     *
      * @throws IOException If failed to read one of the lines.
      */
     public void readFile() throws IOException {
@@ -69,6 +71,7 @@ public class SjavaFileReader {
 
     /**
      * A getter to the file content.
+     *
      * @return The list which holds the file content.
      */
     public List<String> getFileContent() {

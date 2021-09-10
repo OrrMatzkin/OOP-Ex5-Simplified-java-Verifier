@@ -21,25 +21,25 @@ public class Scope {
     /**
      * The value used in the regex group operation.
      */
-    private final static int ZERO = 0, ONE = 1, TWO = 2, THREE = 3;
+    protected final static int ZERO = 0, ONE = 1, TWO = 2, THREE = 3;
 
     /**
      * The Global Scope name.
      */
-    private final static String GLOBAL_SCOPE_NAME =  "Global Scope";
+    private final static String GLOBAL_SCOPE_NAME = "Global Scope";
 
     /**
      * Short regex expressions.
      */
-    private final static String REGEX_SEMICOLON =  ";", REGEX_OPEN_BRACKET =  "{",
-            REGEX_CLOSED_BRACKET =  "}", REGEX_COMMENT =  "//", REGEX_COMA =  ",",
-            REGEX_SINGLE_SPACE = " ";
+    public final static String REGEX_SEMICOLON = ";", REGEX_OPEN_BRACKET = "{",
+            REGEX_CLOSED_BRACKET = "}", REGEX_COMMENT = "//", REGEX_COMMA = ",",
+            REGEX_SINGLE_SPACE = " ", REGEX_OR = "||", REGEX_AND = "&&", REGEX_EMPTY = "";
 
     /**
      * Long regex expressions.
      */
-    private final static String REGEX_CONDITION =  "^\\s*(if|while)\\s*\\(.*\\)\\s*",
-            REGEX_METHOD =  "^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(.*\\)\\s*",
+    public final static String REGEX_CONDITION = "^\\s*(if|while)\\s*\\(.*\\)\\s*",
+            REGEX_METHOD = "^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(.*\\)\\s*",
             REGEX_POSSIBLE_METHOD = "^\\s*([a-zA-Z0-9_]+)\\s*(\\(.*\\))\\s*$",
             REGEX_POSSIBLE_ASSIGN = "^(\\S+)\\s*=\\s*(\\S+)$",
             REGEX_RETURN = "^\\s*return\\s*;\\s*$";
@@ -47,19 +47,13 @@ public class Scope {
     /**
      * Scope types names.
      */
-    private final static String TYPE_IF_OR_WHILE =  "ifWhile", TYPE_METHOD =  "method";
+    private final static String TYPE_IF_OR_WHILE = "ifWhile", TYPE_METHOD = "method";
 
     /**
      * Regex method return type.
      */
     private final static String METHOD_TYPE_VOID = "void";
 
-    /**
-     * Regex variable types.
-     */
-    private final static String VARIABLE_FINAL = "final", VARIABLE_TYPE_INT = "int",
-            VARIABLE_TYPE_DOUBLE = "double", VARIABLE_TYPE_STRING = "String", VARIABLE_TYPE_CHAR = "char",
-            VARIABLE_TYPE_BOOLEAN = "boolean", VARIABLE_INIT_CONFIG = "";
 
     /**
      * A static variable which hold a reference to the program's global scope.
@@ -69,7 +63,7 @@ public class Scope {
     /**
      * A HashMap of all the scope variables.
      */
-    protected HashMap<String, Variable>  variables = new HashMap<>();
+    protected HashMap<String, Variable> variables = new HashMap<>();
 
     /**
      * A HashMap of all the scope arguments (used by the method).
@@ -104,9 +98,10 @@ public class Scope {
 
     /**
      * The Scope Class constructor.
-     * @param scopeData The scope code lines.
+     *
+     * @param scopeData  The scope code lines.
      * @param outerScope The scope which wraps this scope.
-     * @param name The scope name.
+     * @param name       The scope name.
      */
     public Scope(List<String> scopeData, Scope outerScope, String name) {
         this.name = name;
@@ -122,8 +117,9 @@ public class Scope {
      * individual code line). according to the exercise's instructions, and the
      * s-Java coding specifications, this method matched each line to it's
      * appropriate cipher.
-     * @throws ScopeError If there is Scope error.
-     * @throws MethodError If there is Method error.
+     *
+     * @throws ScopeError    If there is Scope error.
+     * @throws MethodError   If there is Method error.
      * @throws VariableError If there is Variable error.
      */
     protected void scan() throws ScopeError, MethodError, VariableError {
@@ -132,12 +128,13 @@ public class Scope {
         for (int lineNum = 0; lineNum < maxLineNum; lineNum++) {
             line = this.rawData.get(lineNum);
             // in case the current is a comment line or an empty line.
-            if (line.startsWith(REGEX_COMMENT) || line.trim().isEmpty()) {}
+            if (line.startsWith(REGEX_COMMENT) || line.trim().isEmpty()) {
+            }
             // in case of a declaration or assignment
             else if (line.trim().endsWith(REGEX_SEMICOLON)) singleLineCommand(line);
-            // in case of a new scope creation
-            else if (line.trim().endsWith(REGEX_OPEN_BRACKET)) lineNum += scopeCreation(line, lineNum) -1;
-            // in case of invalid line syntax
+                // in case of a new scope creation
+            else if (line.trim().endsWith(REGEX_OPEN_BRACKET)) lineNum += scopeCreation(line, lineNum) - ONE;
+                // in case of invalid line syntax
             else {
                 throw new InvalidSyntax(line);
             }
@@ -147,12 +144,13 @@ public class Scope {
     /**
      * This method helps to determine whether the scanned line creates a new
      * method scope or a new if/while scope.
-     * @param line the scope's declaration line.
+     *
+     * @param line    the scope's declaration line.
      * @param lineNum the number of the first line in the new declared scope
      *                (with respect to the original scope line counter).
      * @return the new declared scope's size (the number of lines in it).
-     * @throws ScopeError If there is Scope error.
-     * @throws MethodError If there is Method error.
+     * @throws ScopeError    If there is Scope error.
+     * @throws MethodError   If there is Method error.
      * @throws VariableError If there is Variable error.
      */
     private int scopeCreation(String line, int lineNum) throws ScopeError, MethodError, VariableError {
@@ -167,7 +165,7 @@ public class Scope {
 
         // if/while statement
         if (matcher1.find()) {
-            return scopeCreationAUX(lineNum,TYPE_IF_OR_WHILE, line);
+            return scopeCreationAUX(lineNum, TYPE_IF_OR_WHILE, line);
         }
         // a method declaration statement
         else if (matcher2.find()) {
@@ -183,13 +181,14 @@ public class Scope {
     /**
      * this method 'creates' a new Method or Scondition Class, corresponding
      * to the given type.
+     *
      * @param lineNum the number of the first line in this new declared scope
      *                (with respect to the original scope line counter).
-     * @param type "method" or "ifWhile" - to determine the new Class's identity.
-     * @param name the scope's name.
+     * @param type    "method" or "ifWhile" - to determine the new Class's identity.
+     * @param name    the scope's name.
      * @return the new scope's size (the number of lines in it).
-     * @throws ScopeError If there is Scope error.
-     * @throws MethodError If there is Method error.
+     * @throws ScopeError    If there is Scope error.
+     * @throws MethodError   If there is Method error.
      * @throws VariableError If there is Variable error.
      */
     private int scopeCreationAUX(int lineNum, String type, String name)
@@ -203,13 +202,11 @@ public class Scope {
         if (type.equals(TYPE_METHOD)) {
             Method method = new Method(innerScopeData, this, name);
             this.innerScopes.add(method);
-        }
-        else {
+        } else {
             if (callFromMethod()) {
                 Scondition scondition = new Scondition(innerScopeData, this, name);
                 this.innerScopes.add(scondition);
-            }
-            else throw new ConditionDeclarationNotFromMethod();
+            } else throw new ConditionDeclarationNotFromMethod();
         }
         return innerScopeSize;
     }
@@ -221,36 +218,39 @@ public class Scope {
      * 2. a Method call.
      * 3. a return statement.
      * 4. existing Variable assignments.
+     *
      * @param line The single line command.
-     * @throws VariableError Possible when trying to declare or assign a variable.
-     * @throws InvalidCommand If there is an invalid command in one of the scope lines.
+     * @throws VariableError     Possible when trying to declare or assign a variable.
+     * @throws InvalidCommand    If there is an invalid command in one of the scope lines.
      * @throws InvalidMethodCall If a method is called not from the global scope.
-     * @throws InvalidSyntax In case of an invalid s-Java syntax.
+     * @throws InvalidSyntax     In case of an invalid s-Java syntax.
      */
     public void singleLineCommand(String line)
             throws VariableError, InvalidCommand, InvalidMethodCall, InvalidSyntax {
         String trimmedLine = line.trim();
-        trimmedLine = trimmedLine.substring(ZERO,trimmedLine.length()-ONE);
+        trimmedLine = trimmedLine.substring(ZERO, trimmedLine.length() - ONE);
         // New Variable declarations
         if (possibleVariableDeclaration(trimmedLine)) declareNewVariables(trimmedLine);
-        // A Method call
+            // A Method call
         else if (possibleMethodCall(line)) {
             if (!callFromMethod()) throw new InvalidMethodCall(line);
             MethodCallsChecker.addCall(line);
         }
         // A return statement
-        else if (isReturnLine(line)) {}
+        else if (isReturnLine(line)) {
+        }
         // A Variable assignments
         else assignExistingVariable(trimmedLine);
     }
 
     /**
      * Check if this scope or any of his outer scope is a method.
+     *
      * @return True if this scope is a method or wrapped by one, false elsewhere.
      */
-    protected boolean callFromMethod(){
+    protected boolean callFromMethod() {
         Scope outerScope = this;
-        while (outerScope != null){
+        while (outerScope != null) {
             if (outerScope instanceof Method) return true;
             outerScope = outerScope.outerScope;
         }
@@ -259,6 +259,7 @@ public class Scope {
 
     /**
      * Checks if the given line is a valid s-Java return statement line.
+     *
      * @param line The line to be checked.
      * @return True in case the given line is a valid s-Java return statement inside a method,
      * false otherwise.
@@ -271,6 +272,7 @@ public class Scope {
 
     /**
      * Checks if the method call is valid.
+     *
      * @param line A String in which a method is to be called.
      * @return True in case the line holds a valid s-Java method call, false otherwise.
      */
@@ -283,26 +285,30 @@ public class Scope {
     /**
      * Checks if the given line starts with one of the s-Java's reserved keywords,
      * which indicates a new variable declaration.
+     *
      * @param line The line to be checked.
      * @return True in case the line decodes for a variable declaration, false otherwise.
      */
     private boolean possibleVariableDeclaration(String line) {
-        return (line.trim().startsWith(VARIABLE_FINAL) || line.trim().startsWith(VARIABLE_TYPE_INT) ||
-                line.trim().startsWith(VARIABLE_TYPE_DOUBLE) || line.trim().startsWith(VARIABLE_TYPE_STRING)
-                || line.trim().startsWith(VARIABLE_TYPE_BOOLEAN) ||
-                line.trim().startsWith(VARIABLE_TYPE_CHAR));
+        return (line.trim().startsWith(Variable.VARIABLE_FINAL) ||
+                line.trim().startsWith(Variable.VARIABLE_TYPE_INT) ||
+                line.trim().startsWith(Variable.VARIABLE_TYPE_DOUBLE) ||
+                line.trim().startsWith(Variable.VARIABLE_TYPE_STRING) ||
+                line.trim().startsWith(Variable.VARIABLE_TYPE_BOOLEAN) ||
+                line.trim().startsWith(Variable.VARIABLE_TYPE_CHAR));
     }
 
     /**
      * Tries to assign an existing argument or variable a new value.
+     *
      * @param line The line to be checked.
-     * @throws VariableError If one of the possible assignments fails.
+     * @throws VariableError  If one of the possible assignments fails.
      * @throws InvalidCommand If there is an invalid command (not an assignment).
      */
-    private void assignExistingVariable(String line) throws VariableError, InvalidCommand{
+    private void assignExistingVariable(String line) throws VariableError, InvalidCommand {
         Pattern pattern = Pattern.compile(REGEX_POSSIBLE_ASSIGN);
-        String[] assignmentsStr = line.split(REGEX_COMA);
-        for (String possibleAssignment: assignmentsStr){
+        String[] assignmentsStr = line.split(REGEX_COMMA);
+        for (String possibleAssignment : assignmentsStr) {
             Matcher matcher = pattern.matcher(possibleAssignment);
             if (matcher.find()) {
                 Scope curScope = this;
@@ -320,8 +326,8 @@ public class Scope {
                     curScope = curScope.outerScope;
                 }
                 if (callFromMethod()) {
-                GlobalVariablesChecker.addAssignment(possibleAssignment); }
-                else throw new VariableDoesNotExist(matcher.group(ONE));
+                    GlobalVariablesChecker.addAssignment(possibleAssignment);
+                } else throw new VariableDoesNotExist(matcher.group(ONE));
             } else throw new InvalidCommand(line);
         }
 
@@ -329,25 +335,26 @@ public class Scope {
 
     /**
      * Tries to create new variables.
+     *
      * @param line The line to be checked.
      * @throws VariableError If one of the possible deceleration fails.
      */
     private void declareNewVariables(String line) throws VariableError, InvalidSyntax {
-        String configStr = VARIABLE_INIT_CONFIG;
+        String configStr = Variable.VARIABLE_INIT_CONFIG;
         String[] separatedWords = line.split(REGEX_SINGLE_SPACE);
         if (separatedWords.length >= TWO) {
             configStr += separatedWords[ZERO] + REGEX_SINGLE_SPACE;
-            if (separatedWords[ZERO].equals(VARIABLE_FINAL)) configStr += separatedWords[ONE] +
+            if (separatedWords[ZERO].equals(Variable.VARIABLE_FINAL)) configStr += separatedWords[ONE] +
                     REGEX_SINGLE_SPACE;
         }
         try {
-            line = line.replaceFirst(configStr, VARIABLE_INIT_CONFIG);
-        } catch (PatternSyntaxException e){
-            throw new BadVariableDeclaration(line,false);
+            line = line.replaceFirst(configStr, Variable.VARIABLE_INIT_CONFIG);
+        } catch (PatternSyntaxException e) {
+            throw new BadVariableDeclaration(line, false);
         }
-        if (line.endsWith(REGEX_COMA)) throw new BadVariableDeclaration(line,false);
-        String[] variablesStr = line.split(REGEX_COMA);
-        for (String variableStr: variablesStr) {
+        if (line.endsWith(REGEX_COMMA)) throw new BadVariableDeclaration(line, false);
+        String[] variablesStr = line.split(REGEX_COMMA);
+        for (String variableStr : variablesStr) {
             if (variableStr.isEmpty()) throw new InvalidSyntax(line);
             Variable variable = new Variable(configStr +
                     variableStr.trim(), false, this);
@@ -359,6 +366,7 @@ public class Scope {
      * Finds the size of a scope (according to it's starting line number).
      * by iteration, it scans for a new closing bracket to appear, to signify the end
      * of the scope.
+     *
      * @param lineNum the number of the first line in this new declared scope
      *                (with respect to the original scope line counter).
      * @return the size of the scope (the number of lines in it).
@@ -384,6 +392,7 @@ public class Scope {
 
     /**
      * Getter for the scope name.
+     *
      * @return This scope name.
      */
     public String getName() {

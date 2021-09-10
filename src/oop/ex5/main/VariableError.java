@@ -170,7 +170,7 @@ class UninitializedParameter extends VariableError {
      * The Error constructor.
      */
     UninitializedParameter(String param) {
-        super( param + " is not initialized.");
+        super(param + " is not initialized.");
     }
 }
 
@@ -182,7 +182,7 @@ class VariableInitInMethodDeclaration extends VariableError {
      * The Error constructor.
      */
     VariableInitInMethodDeclaration(String variable) {
-        super( variable + " can not be initialized in a method declaration.");
+        super(variable + " can not be initialized in a method declaration.");
     }
 }
 

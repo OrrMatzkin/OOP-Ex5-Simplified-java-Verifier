@@ -11,6 +11,27 @@ import java.util.regex.Pattern;
 public class Scondition extends Scope {
 
     /**
+     * Regex for splitting the condition.
+     */
+    private final static String SPLIT_REGEX = "\\|\\||\\&\\&";
+
+    /**
+     * Regex for finding condition.
+     */
+    private final static String REGEX_CONDITION = "^\\s*(if|while)(\\s*)*\\((.*)\\)\\s*";
+
+    /**
+     * Condition values.
+     */
+    public final static String TRUE_VALUE = "true", FALSE_VALUE = "false";
+
+    /**
+     * Initialing lines for testing condition.
+     */
+    private final static String INIT_LINE_INT = "int check_int", INIT_LINE_DOUBLE = "double check_double",
+            INIT_LINE_BOOLEAN = "boolean check_boolean";
+
+    /**
      * A String which holds the first line of the Scondition scope (the scopes's
      * declaration line).
      */
@@ -26,35 +47,38 @@ public class Scondition extends Scope {
 
     /**
      * the Scondition Class constructor.
-     * @param name the scope's name.
-     * @param scopeData the scope's code lines.
+     *
+     * @param name       the scope's name.
+     * @param scopeData  the scope's code lines.
      * @param outerScope a scope instance from which this constructor was called.
-     * @throws ScopeError If there is Scope error.
-     * @throws MethodError If there is Method error.
+     * @throws ScopeError    If there is Scope error.
+     * @throws MethodError   If there is Method error.
      * @throws VariableError If there is Variable error.
      */
     public Scondition(List<String> scopeData, Scope outerScope, String name)
-            throws ScopeError, MethodError, VariableError  {
-        super(scopeData,outerScope, name);
-        this.declaration = scopeData.get(0);
+            throws ScopeError, MethodError, VariableError {
+        super(scopeData, outerScope, name);
+        this.declaration = scopeData.get(ZERO);
         // in order to avoid an infinite loop while scanning the scope's
         // data, we have to remove it's first line (the declaration of the scope)
-        this.rawData.remove(0);
+        this.rawData.remove(ZERO);
         extractCondition();
         checkConditionValidity(this.conditions);
         if (!this.rawData.isEmpty()) scan();
-        for (Variable variable: this.variables.values()) variable.delete();
+        for (Variable variable : this.variables.values()) variable.delete();
     }
 
     /**
      * Extracts the if/while condition, in order to check its validity.
+     *
      * @throws MissingCondition If the condition is missing (an empty string).
      */
     private void extractCondition() throws MissingCondition, EmptyCondition {
-        Pattern pattern = Pattern.compile("^\\s*(if|while)(\\s*)*\\((.*)\\)\\s*");
-        Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
-        if (matcher.find()){
-            String condition = matcher.group(3).trim();
+        Pattern pattern = Pattern.compile(REGEX_CONDITION);
+        Matcher matcher = pattern.matcher(this.declaration.
+                substring(ZERO, this.declaration.length() - ONE).trim());
+        if (matcher.find()) {
+            String condition = matcher.group(THREE).trim();
             if (condition.isEmpty()) throw new MissingCondition();
             checkMultipleCondition(condition);
         }
@@ -63,11 +87,12 @@ public class Scondition extends Scope {
     /**
      * This method checks if the given condition contains multiple conditions, according
      * to the s-Java's syntax.
+     *
      * @param condition The condition to be checked.
      * @throws EmptyCondition In case any of the given conditions is empty.
      */
-    private void checkMultipleCondition(String condition) throws EmptyCondition{
-        if (condition.contains("||") || condition.contains("&&")) splitCondition(condition);
+    private void checkMultipleCondition(String condition) throws EmptyCondition {
+        if (condition.contains(REGEX_OR) || condition.contains(REGEX_AND)) splitCondition(condition);
         else this.conditions.add(condition);
     }
 
@@ -75,13 +100,14 @@ public class Scondition extends Scope {
     /**
      * This method splits a String of multiple conditions into individual conditions,
      * according to a given buffer (the OR / AND s-Java operators).
+     *
      * @param condition a String of multiple conditions.
      * @throws EmptyCondition In case any of the given conditions is empty.
      */
-    private void splitCondition(String condition) throws EmptyCondition{
-        String[] splitConditions = condition.split("\\|\\||\\&\\&");
+    private void splitCondition(String condition) throws EmptyCondition {
+        String[] splitConditions = condition.split(SPLIT_REGEX);
         // check if all conditions are valid
-        for (String splitCondition: splitConditions) {
+        for (String splitCondition : splitConditions) {
             if (splitCondition.trim().isEmpty()) throw new EmptyCondition();
             this.conditions.add(splitCondition);
         }
@@ -89,13 +115,14 @@ public class Scondition extends Scope {
 
     /**
      * Checks if the condition is valid.
+     *
      * @param conditions The conditions to be checked.
      * @throws InvalidConditionException If the condition is invalid
-     * @throws UninitializedVariable If the variable in the condition is uninitialized.
+     * @throws UninitializedVariable     If the variable in the condition is uninitialized.
      */
     private void checkConditionValidity(List<String> conditions)
             throws InvalidConditionException, UninitializedVariable {
-        for (String condition: conditions) {
+        for (String condition : conditions) {
             condition = condition.trim();
             if (!checkBooleanReservedWord(condition) && !checkVariableType(condition) &&
                     !checkStringCondition(condition)) {
@@ -108,16 +135,18 @@ public class Scondition extends Scope {
 
     /**
      * Checks if the condition string is "true" or "false".
+     *
      * @param condition The condition string.
      * @return True if the condition is a boolean keyword, false elsewhere.
      */
     private boolean checkBooleanReservedWord(String condition) {
-        return condition.equals("true") || condition.equals("false");
+        return condition.equals(TRUE_VALUE) || condition.equals(FALSE_VALUE);
     }
 
     /**
      * Checks if the given string variable name is an existing int or double variable.
-     * @param variableStr The string varaible name.
+     *
+     * @param variableStr The string variable name.
      * @return True if the existing variable is an int or a double
      * @throws UninitializedVariable If the variable in the condition is uninitialized.
      */
@@ -127,63 +156,61 @@ public class Scondition extends Scope {
             if (!variable.isInitialized())
                 throw new UninitializedVariable(variableStr);
             else {
-                return (variable.getType().equals("BOOLEAN") ||
-                        variable.getType().equals("INT") ||
-                        variable.getType().equals("DOUBLE"));
+                return (variable.getType().equals(Variable.VARIABLE_TYPE_BOOLEAN.toUpperCase()) ||
+                        variable.getType().equals(Variable.VARIABLE_TYPE_INT.toUpperCase()) ||
+                        variable.getType().equals(Variable.VARIABLE_TYPE_DOUBLE.toUpperCase()));
             }
         } else if (Variable.existingArguments.containsKey(variableStr)) {
             Variable arguments = Variable.existingArguments.get(variableStr);
-            return (arguments.getType().equals("BOOLEAN") ||
-                    arguments.getType().equals("INT") ||
-                    arguments.getType().equals("DOUBLE"));
+            return (arguments.getType().equals(Variable.VARIABLE_TYPE_BOOLEAN.toUpperCase()) ||
+                    arguments.getType().equals(Variable.VARIABLE_TYPE_INT.toUpperCase()) ||
+                    arguments.getType().equals(Variable.VARIABLE_TYPE_DOUBLE.toUpperCase()));
         }
         return false;
     }
 
     /**
      * Checks if the condition is valid.
+     *
      * @param condition The string condition
      * @return true if the condition is valid, false elsewhere.
      */
-    private boolean checkStringCondition(String condition)  {
+    private boolean checkStringCondition(String condition) {
         Variable intVar, doubleVar, booleanVar;
         boolean[] checkArr = {true, true, true};
         // try to create the test variables
         try {
-            intVar = new Variable("int check_int", false, this);
-            doubleVar = new Variable("double check_double", false, this);
-            booleanVar = new Variable("boolean check_boolean", false, this);
-        } catch (VariableError e){
+            intVar = new Variable(INIT_LINE_INT, false, this);
+            doubleVar = new Variable(INIT_LINE_DOUBLE, false, this);
+            booleanVar = new Variable(INIT_LINE_BOOLEAN, false, this);
+        } catch (VariableError e) {
             return false;
         }
         // try to set the given condition
         try {
             intVar.setData(condition, false, this);
-        }
-        catch (VariableError  e) {
-            checkArr[0] = false;
+        } catch (VariableError e) {
+            checkArr[ZERO] = false;
         }
         try {
             doubleVar.setData(condition, false, this);
-        }
-        catch (VariableError e) {
-            checkArr[1] = false;
+        } catch (VariableError e) {
+            checkArr[ONE] = false;
         }
         try {
-            booleanVar.setData(condition,false, this);
-        }
-        catch (VariableError e) {
-            checkArr[2] = false;
+            booleanVar.setData(condition, false, this);
+        } catch (VariableError e) {
+            checkArr[TWO] = false;
         }
         // remove the variables from existence
-        Variable.existingVariables.remove("int check_int");
-        Variable.existingVariables.remove("double check_double");
-        Variable.existingVariables.remove("boolean check_boolean");
+        Variable.existingVariables.remove(INIT_LINE_INT);
+        Variable.existingVariables.remove(INIT_LINE_DOUBLE);
+        Variable.existingVariables.remove(INIT_LINE_BOOLEAN);
         intVar.delete();
         doubleVar.delete();
         booleanVar.delete();
         // if one if the data set is valid (true) it will return true;
-        return checkArr[0] || checkArr[1] || checkArr[2];
+        return checkArr[ZERO] || checkArr[ONE] || checkArr[TWO];
     }
 
 }

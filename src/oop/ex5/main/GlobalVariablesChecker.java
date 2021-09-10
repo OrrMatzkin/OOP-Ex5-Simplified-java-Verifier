@@ -16,7 +16,7 @@ public class GlobalVariablesChecker {
     /**
      * The value used in the regex group operation.
      */
-    private final static int  REGEX_VARIABLE = 1, REGEX_VALUE = 2;
+    private final static int REGEX_VARIABLE = 1, REGEX_VALUE = 2;
 
     /**
      * A list of Strings which holds all possible variables assignments from Method scopes.
@@ -37,11 +37,12 @@ public class GlobalVariablesChecker {
     /**
      * the Class constructor.
      */
-    private GlobalVariablesChecker() {}
+    private GlobalVariablesChecker() {
+    }
 
     /**
-     * This method adds a possible global scope assignment to the relevant
-     * list.
+     * This method adds a possible global scope assignment to the relevant list.
+     *
      * @param assignment A string contains the relevant assignment.
      */
     public static void addAssignment(String assignment) {
@@ -51,6 +52,7 @@ public class GlobalVariablesChecker {
     /**
      * This method adds a possible global scope declaration to the relevant
      * list.
+     *
      * @param declaration A string contains the relevant declaration.
      */
     public static void addDeclaration(String declaration) {
@@ -58,19 +60,19 @@ public class GlobalVariablesChecker {
     }
 
     /**
-     * This method adds a possible global scope condition to the relevant
-     * map.
+     * This method adds a possible global scope condition to the relevant map.
+     *
      * @param condition A string contains the relevant condition.
-     * @param scope The scope from which the condition was created.
+     * @param scope     The scope from which the condition was created.
      */
     public static void addCondition(String condition, Scope scope) {
         globalVariablesCondition.put(condition, scope);
     }
 
-
     /**
      * This method iterates over all possible variables assignments (from Method scopes),
      * and checks if the variable was declared in the global scope after the assignments.
+     *
      * @throws VariableError In case the assignment is invalid.
      */
     public static void checkGlobalAssignments() throws VariableError {
@@ -82,8 +84,7 @@ public class GlobalVariablesChecker {
                 if (curScope.variables.containsKey(matcher.group(REGEX_VARIABLE))) {
                     curScope.variables.get(matcher.group(REGEX_VARIABLE)).setData(matcher.group(REGEX_VALUE),
                             false, Scope.globalScope);
-                }
-                else throw new VariableDoesNotExist(matcher.group(REGEX_VARIABLE));
+                } else throw new VariableDoesNotExist(matcher.group(REGEX_VARIABLE));
             }
         }
     }
@@ -91,41 +92,43 @@ public class GlobalVariablesChecker {
     /**
      * This method iterates over all possible variables declarations (from Method scopes),
      * and checks if the variable was declared and initialized in the global scope after the declaration.
-     * @throws InvalidCommand In case the declaration command in wrong.
+     *
+     * @throws InvalidCommand    In case the declaration command in wrong.
      * @throws InvalidMethodCall In case the call was done not from a method scope.
-     * @throws VariableError In case the assignment is invalid.
-     * @throws InvalidSyntax In case there is a problem with the declaration syntax.
+     * @throws VariableError     In case the assignment is invalid.
+     * @throws InvalidSyntax     In case there is a problem with the declaration syntax.
      */
     public static void checkGlobalDeclaration()
             throws InvalidCommand, InvalidMethodCall, VariableError, InvalidSyntax {
-        for (String declaration: globalVariablesDeclaration) {
+        for (String declaration : globalVariablesDeclaration) {
             Scope.globalScope.singleLineCommand(declaration + Scope.REGEX_SEMICOLON);
         }
     }
 
     /**
      * This method checks if all possible condition (with the use of global scope variables) are valid.
+     *
      * @throws VariableError In case the condition is of a bad s-Java condition type.
-     * @throws ScopeError In case of an invalid s-Java condition.
+     * @throws ScopeError    In case of an invalid s-Java condition.
      */
     public static void checkGlobalCondition() throws VariableError, ScopeError {
-        for (String variableStr : globalVariablesCondition.keySet()){
+        for (String variableStr : globalVariablesCondition.keySet()) {
             Variable variable = Variable.existingVariables.get(variableStr);
             Variable argument = Variable.existingArguments.get(variableStr);
             if (variable != null) {
                 if (variable.initializedScope != Scope.globalScope)
                     throw new InvalidConditionException(variableStr);
                 if (!variable.isInitialized()) throw new UninitializedVariable(variableStr);
-                else if (!variable.getType().equals(Scope.VARIABLE_TYPE_BOOLEAN.toUpperCase()) &&
-                        !variable.getType().equals(Scope.VARIABLE_TYPE_INT.toUpperCase()) &&
-                        !variable.getType().equals(Scope.VARIABLE_TYPE_DOUBLE.toUpperCase()))
-                        throw new InvalidConditionException(variableStr);
+                else if (!variable.getType().equals(Variable.VARIABLE_TYPE_BOOLEAN.toUpperCase()) &&
+                        !variable.getType().equals(Variable.VARIABLE_TYPE_INT.toUpperCase()) &&
+                        !variable.getType().equals(Variable.VARIABLE_TYPE_DOUBLE.toUpperCase()))
+                    throw new InvalidConditionException(variableStr);
                 else return;
-                }
+            }
             if (argument != null) {
-                if (!argument.getType().equals(Scope.VARIABLE_TYPE_BOOLEAN.toUpperCase()) &&
-                        !argument.getType().equals(Scope.VARIABLE_TYPE_INT.toUpperCase()) &&
-                        !argument.getType().equals(Scope.VARIABLE_TYPE_DOUBLE.toUpperCase()))
+                if (!argument.getType().equals(Variable.VARIABLE_TYPE_BOOLEAN.toUpperCase()) &&
+                        !argument.getType().equals(Variable.VARIABLE_TYPE_INT.toUpperCase()) &&
+                        !argument.getType().equals(Variable.VARIABLE_TYPE_DOUBLE.toUpperCase()))
                     throw new InvalidConditionException(variableStr);
                 else return;
             }

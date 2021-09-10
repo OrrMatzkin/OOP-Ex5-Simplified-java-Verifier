@@ -3,7 +3,7 @@ package oop.ex5.main;
 /**
  * a class of Scope errors exceptions.
  */
-public class ScopeError extends Exception{
+public class ScopeError extends Exception {
 
     /**
      * super constructor for a Scope Error

@@ -20,24 +20,30 @@ public class Sjavac {
     }
 
     /**
+     * Number of arguments needed.
+     */
+    final static int ARGUMENTS_NUMBER = 1, ZERO = 0;
+
+    /**
      * The main method of the program.
+     *
      * @param args The arguments given in the command line in order to run the program.
      */
     public static void main(String[] args) {
         try {
-            if (args.length < 1) throw new IllegalArgumentException("Missing s-Java file name.");
-            else if (args.length > 1) throw new IllegalArgumentException("Too many arguments.");
-            List<String> fileContent = getSjavaLines(args[0]);
+            if (args.length < ARGUMENTS_NUMBER)
+                throw new IllegalArgumentException("Missing s-Java file name.");
+            else if (args.length > ARGUMENTS_NUMBER)
+                throw new IllegalArgumentException("Too many arguments.");
+            List<String> fileContent = getSjavaLines(args[ZERO]);
             Scope scope = new Scope(fileContent, null, "Global Scope");
             scope.scan();
             finalChecks();
-        }
-        catch (IOException | IllegalArgumentException e) {
+        } catch (IOException | IllegalArgumentException e) {
             System.out.println(OutputType.IO_ERROR.ordinal());
             System.err.println(e);
             return;
-        }
-        catch (VariableError | ScopeError | MethodError e) {
+        } catch (VariableError | ScopeError | MethodError e) {
             System.out.println(OutputType.ILLEGAL.ordinal());
             System.err.println(e);
             return;
@@ -50,6 +56,7 @@ public class Sjavac {
 
     /**
      * Gets the entire file lines in order.
+     *
      * @param filePath The source Sjava file path.
      * @return List of all the lines of the file.
      * @throws IOException If the file does not exist.
@@ -64,7 +71,7 @@ public class Sjavac {
     /**
      * Clears the static collection members from all class.
      */
-    private static void clearStaticCollections(){
+    private static void clearStaticCollections() {
         Variable.existingVariables.clear();
         Variable.existingArguments.clear();
         Method.allMethods.clear();
@@ -78,8 +85,9 @@ public class Sjavac {
     /**
      * Runs the final check for method call, and global assignments, declarations and conditions.
      * Some methods and variables might be declared after their usage.
-     * @throws ScopeError If there is Scope error.
-     * @throws MethodError If there is Method error.
+     *
+     * @throws ScopeError    If there is Scope error.
+     * @throws MethodError   If there is Method error.
      * @throws VariableError If there is Variable error.
      */
     private static void finalChecks() throws ScopeError, MethodError, VariableError {

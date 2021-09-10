@@ -10,9 +10,34 @@ import java.util.regex.Pattern;
 public class Variable {
 
     /**
+     * Regex variable types.
+     */
+    public final static String VARIABLE_FINAL = "final", VARIABLE_TYPE_INT = "int",
+            VARIABLE_TYPE_DOUBLE = "double", VARIABLE_TYPE_STRING = "String", VARIABLE_TYPE_CHAR = "char",
+            VARIABLE_TYPE_BOOLEAN = "boolean", VARIABLE_INIT_CONFIG = "";
+
+    /**
      * The value used in the regex group operation.
      */
-    private final static int  REGEX_VARIABLE = 1, REGEX_VALUE = 2, REGEX_ARGUMENT = 3;
+    private final static int ONE = 1, TWO = 2, THREE = 3;
+
+    /**
+     * Regex for finding full Initialized variable or just declared variable.
+     */
+    private final static String REGEX_FULL_INIT = "^(\\S+)\\s+(\\S+)\\s*=\\s*(.*)$",
+            REGEX_HALF_INIT = "^(\\S+)\\s+(\\S+)$";
+
+    /**
+     * Regex of all possible saved keywords.
+     */
+    public final static String SAVED_WORDS =
+            "^(int|double|String|char|boolean|final|if|while|true|false|void|return)$";
+
+    /**
+     * Short regex expression.
+     */
+    public final static String REGEX_DIGIT_WORDS = "(?=\\D)(?=\\W)", REGEX_DIGIT = "^\\d",
+            REGEX_UNDERSCORE = "^_$", REGEX_STARTS_UNDERSCORE = "^_";
 
     /**
      * All the current existing variables n the program sorted in a HashMap (name, Variable objects).
@@ -74,9 +99,9 @@ public class Variable {
     }
 
 
-
     /**
      * A generic Data class for Variable.
+     *
      * @param <T> The data type (int/double/String/char/boolean).
      */
     private static class Data<T> {
@@ -88,6 +113,7 @@ public class Variable {
 
         /**
          * The constructor of the Data.
+         *
          * @param value The value of the Data.
          */
         Data(T value) {
@@ -96,6 +122,7 @@ public class Variable {
 
         /**
          * Converts and returns the value of the data to String.
+         *
          * @return The value of the Data as a String.
          */
         @Override
@@ -146,16 +173,17 @@ public class Variable {
 
     /**
      * The Contractor of the Variable.
+     *
      * @param initializeLine The initializing line (trimmed!)
      * @param isArgument     True if this variable should is, else false.
-     * @param declaredScope The scope where the variable was declared.
+     * @param declaredScope  The scope where the variable was declared.
      * @throws VariableError When the Variable declaration goes wrong.
      */
     public Variable(String initializeLine, boolean isArgument, Scope declaredScope) throws VariableError {
         this.declaredScope = declaredScope;
         this.isArgument = isArgument;
-        this.isFinal = initializeLine.startsWith("final");
-        updateParameters(isFinal ? initializeLine.replaceFirst("final", "")
+        this.isFinal = initializeLine.startsWith(VARIABLE_FINAL);
+        updateParameters(isFinal ? initializeLine.replaceFirst(VARIABLE_FINAL, Scope.REGEX_EMPTY)
                 : initializeLine);
         if (this.isArgument) existingArguments.put(this.name, this);
         else existingVariables.put(this.name, this);
@@ -168,24 +196,25 @@ public class Variable {
      * @throws VariableError If updating the parameter is unsuccessful it throws a VariableError.
      */
     private void updateParameters(String initializeLine) throws VariableError {
-        Matcher fullMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)\\s*=\\s*(.*)$").
+        Matcher fullMatcher = Pattern.compile(REGEX_FULL_INIT).
                 matcher(initializeLine.trim());
-        Matcher partMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)$").matcher(initializeLine.trim());
+        Matcher partMatcher = Pattern.compile(REGEX_HALF_INIT).matcher(initializeLine.trim());
         // with initialization (<Type> <Name> <=> <Data>)
         if (fullMatcher.find()) {
-            if (this.isArgument) throw new VariableInitInMethodDeclaration(fullMatcher.group(REGEX_VALUE));
-            this.type = extractType(fullMatcher.group(REGEX_VARIABLE));
-            this.name = extractName(fullMatcher.group(REGEX_VALUE));
-            this.data = extractData(fullMatcher.group(REGEX_ARGUMENT),
+            if (this.isArgument) throw new VariableInitInMethodDeclaration(fullMatcher.group(TWO));
+            this.type = extractType(fullMatcher.group(ONE));
+            this.name = extractName(fullMatcher.group(TWO));
+            this.data = extractData(fullMatcher.group(THREE),
                     false, initializeLine.trim(), this.declaredScope);
             this.isInitialized = true;
             this.initializedScope = declaredScope;
         }
         // if this is variable is not going to be initialized yet (<Type> <Name>)
         else if (partMatcher.find()) {
-            if (this.isFinal && !this.isArgument) throw new UninitializedFinalVariable(partMatcher.group(REGEX_VALUE));
-            this.type = extractType(partMatcher.group(REGEX_VARIABLE));
-            this.name = extractName(partMatcher.group(REGEX_VALUE));
+            if (this.isFinal && !this.isArgument)
+                throw new UninitializedFinalVariable(partMatcher.group(TWO));
+            this.type = extractType(partMatcher.group(ONE));
+            this.name = extractName(partMatcher.group(TWO));
             this.isInitialized = false;
         } else throw new BadVariableDeclaration(initializeLine, this.isArgument);
     }
@@ -208,6 +237,7 @@ public class Variable {
 
     /**
      * Finds the Variable name.
+     *
      * @param nameStr The name String (from the initializing line).
      * @return The name of the Variable.
      * @throws VariableError If the given name is invalid throws a VariableError.
@@ -218,16 +248,16 @@ public class Variable {
                 this.declaredScope.arguments.containsKey(nameStr))
             throw new BadVariableNameAlreadyExists(nameStr);
         // if the name starts with a digit
-        if (Pattern.compile("^\\d").matcher(nameStr).find()) {
+        if (Pattern.compile(REGEX_DIGIT).matcher(nameStr).find()) {
             throw new BadVariableNameDigit(nameStr);
             // if the name is a only a single underscore
-        } else if (Pattern.compile("^_$").matcher(nameStr).find()) {
+        } else if (Pattern.compile(REGEX_UNDERSCORE).matcher(nameStr).find()) {
             throw new BadVariableNameUnderscore(nameStr);
             // if the name contains illegal characters (not letters or digits)
-        } else if (Pattern.compile("(?=\\D)(?=\\W)").matcher(nameStr).find()) {
+        } else if (Pattern.compile(REGEX_DIGIT_WORDS).matcher(nameStr).find()) {
             throw new BadVariableNameIllegal(nameStr);
             // if the name is one of the reserved keyword
-        } else if (Pattern.compile("^(int|double|String|char|boolean|final|if|while|true|false|void|return)$")
+        } else if (Pattern.compile(SAVED_WORDS)
                 .matcher(nameStr).find()) {
             throw new BadVariableNameSavedKeyword(nameStr);
         } else return nameStr;
@@ -235,15 +265,16 @@ public class Variable {
 
     /**
      * Finds the data of the Variable
-     * @param dataStr the data String.
+     *
+     * @param dataStr            the data String.
      * @param isFromCallsHandler If the method was called from the callsHandler class.
-     * @param initializeLine The initialization line of the variable.
-     * @param scope The scope from which the variable was created.
+     * @param initializeLine     The initialization line of the variable.
+     * @param scope              The scope from which the variable was created.
      * @return The matching Data class with the a data value.
      * @throws VariableError If the Variable data is invalid.
      */
-    private Data<?> extractData(String dataStr, boolean isFromCallsHandler, String initializeLine, Scope scope)
-            throws VariableError {
+    private Data<?> extractData(String dataStr, boolean isFromCallsHandler, String initializeLine,
+                                Scope scope) throws VariableError {
         // checks for an already existing variable or argument
         Variable existingVariable = getExistsInVariablesOrArguments(dataStr);
         if (existingVariable != null) {
@@ -251,11 +282,14 @@ public class Variable {
                     (!existingVariable.isInitialized ||
                             !initializedInOuterScope(existingVariable, scope, isFromCallsHandler)))
                 throw new UninitializedParameter(existingVariable.getName());
-            // checks if this is a valid casting
+                // checks if this is a valid casting
             else if (this.getType().equals(existingVariable.getType()) ||
-                    (this.type == Type.DOUBLE && existingVariable.getType().equals("INT")) ||
-                    (this.type == Type.BOOLEAN && (existingVariable.getType().equals("INT")
-                            || existingVariable.getType().equals("DOUBLE")))) {
+                    (this.type == Type.DOUBLE && existingVariable.getType().
+                            equals(VARIABLE_TYPE_INT.toUpperCase())) ||
+                    (this.type == Type.BOOLEAN && (existingVariable.getType().
+                            equals(VARIABLE_TYPE_INT.toUpperCase())
+                            || existingVariable.getType().
+                            equals(VARIABLE_TYPE_DOUBLE.toUpperCase())))) {
                 return existingVariable.getDataObject();
             } else throw new IllegalVariableCasting(this, existingVariable);
         }
@@ -277,14 +311,14 @@ public class Variable {
             case DOUBLE:
                 return new Data<>(Double.parseDouble(dataStr));
             case STRING:
-                return new Data<>(matcher.group(REGEX_VARIABLE));
+                return new Data<>(matcher.group(ONE));
             case CHAR:
-                return new Data<>(matcher.group(REGEX_VARIABLE).charAt(0));
+                return new Data<>(matcher.group(ONE).charAt(Scope.ZERO));
             case BOOLEAN:
-                if (dataStr.equals("true") || dataStr.equals("false"))
+                if (dataStr.equals(Scondition.TRUE_VALUE) || dataStr.equals(Scondition.FALSE_VALUE))
                     return new Data<>(Boolean.parseBoolean(dataStr));
                 else
-                    return new Data<>(!(Double.parseDouble(dataStr) == 0));
+                    return new Data<>(!(Double.parseDouble(dataStr) == Scope.ZERO));
         }
         return null;
     }
@@ -292,16 +326,17 @@ public class Variable {
     /**
      * This method checks if the given variable was initialized in the given scope, or
      * an ancient scope of his.
-     * @param variable The variable to be checked.
-     * @param scope The scope from which the variable was assigned.
+     *
+     * @param variable           The variable to be checked.
+     * @param scope              The scope from which the variable was assigned.
      * @param isFromCallsHandler A boolean arguments which indicates whether the call to this method
      *                           was form the CallHandler class.
      * @return True in case the variable was initialized in an outer scope of the scope given, false
      * otherwise.
      */
-    private boolean initializedInOuterScope(Variable variable, Scope scope, boolean isFromCallsHandler){
+    private boolean initializedInOuterScope(Variable variable, Scope scope, boolean isFromCallsHandler) {
         if (isFromCallsHandler) return true;
-        while (scope != null){
+        while (scope != null) {
             if (variable.initializedScope == scope) return true;
             else scope = scope.outerScope;
         }
@@ -312,6 +347,7 @@ public class Variable {
      * This method returns a reference to a Variable with a key equals to the
      * given String. The Variable returned may be a variable, an argument, or a null
      * pointer in case no variable or argument with a key equals to the given String was found.
+     *
      * @param dataStr A String of the desired Variable key.
      * @return A reference to the desired variable, or a null pointer in case no
      * matching varible was found.
@@ -325,9 +361,10 @@ public class Variable {
 
     /**
      * Sets the Variable data to the given data.
+     *
      * @param dataStr            The new Variable Data as a String.
      * @param isFromCallsHandler True if the setData method is called from the CallsHandler, else false.
-     * @param scope The scope from which the variable was created.
+     * @param scope              The scope from which the variable was created.
      * @throws VariableError If the Variable data is invalid.
      */
     public void setData(String dataStr, boolean isFromCallsHandler, Scope scope) throws VariableError {
