@@ -8,7 +8,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-
 /**
  * This class represents a scope in the s-Java program. each instance
  * of this class is an individual scope (starts with a valid s-Java
@@ -22,7 +21,45 @@ public class Scope {
     /**
      * The value used in the regex group operation.
      */
-    private final static int  REGEX_VARIABLE = 1, REGEX_VALUE = 2;
+    private final static int ZERO = 0, ONE = 1, TWO = 2, THREE = 3;
+
+    /**
+     * The Global Scope name.
+     */
+    private final static String GLOBAL_SCOPE_NAME =  "Global Scope";
+
+    /**
+     * Short regex expressions.
+     */
+    private final static String REGEX_SEMICOLON =  ";", REGEX_OPEN_BRACKET =  "{",
+            REGEX_CLOSED_BRACKET =  "}", REGEX_COMMENT =  "//", REGEX_COMA =  ",",
+            REGEX_SINGLE_SPACE = " ";
+
+    /**
+     * Long regex expressions.
+     */
+    private final static String REGEX_CONDITION =  "^\\s*(if|while)\\s*\\(.*\\)\\s*",
+            REGEX_METHOD =  "^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(.*\\)\\s*",
+            REGEX_POSSIBLE_METHOD = "^\\s*([a-zA-Z0-9_]+)\\s*(\\(.*\\))\\s*$",
+            REGEX_POSSIBLE_ASSIGN = "^(\\S+)\\s*=\\s*(\\S+)$",
+            REGEX_RETURN = "^\\s*return\\s*;\\s*$";
+
+    /**
+     * Scope types names.
+     */
+    private final static String TYPE_IF_OR_WHILE =  "ifWhile", TYPE_METHOD =  "method";
+
+    /**
+     * Regex method return type.
+     */
+    private final static String METHOD_TYPE_VOID = "void";
+
+    /**
+     * Regex variable types.
+     */
+    private final static String VARIABLE_FINAL = "final", VARIABLE_TYPE_INT = "int",
+            VARIABLE_TYPE_DOUBLE = "double", VARIABLE_TYPE_STRING = "String", VARIABLE_TYPE_CHAR = "char",
+            VARIABLE_TYPE_BOOLEAN = "boolean", VARIABLE_INIT_CONFIG = "";
 
     /**
      * A static variable which hold a reference to the program's global scope.
@@ -73,7 +110,7 @@ public class Scope {
      */
     public Scope(List<String> scopeData, Scope outerScope, String name) {
         this.name = name;
-        if (this.name.equals("Global Scope")) Scope.globalScope = this;
+        if (this.name.equals(GLOBAL_SCOPE_NAME)) Scope.globalScope = this;
         this.length = scopeData.size();
         this.rawData = scopeData;
         this.outerScope = outerScope;
@@ -95,11 +132,11 @@ public class Scope {
         for (int lineNum = 0; lineNum < maxLineNum; lineNum++) {
             line = this.rawData.get(lineNum);
             // in case the current is a comment line or an empty line.
-            if (line.startsWith("//") || line.trim().isEmpty()) {}
-            // in case of a declaration or assigment
-            else if (line.trim().endsWith(";")) singleLineCommand(line);
+            if (line.startsWith(REGEX_COMMENT) || line.trim().isEmpty()) {}
+            // in case of a declaration or assignment
+            else if (line.trim().endsWith(REGEX_SEMICOLON)) singleLineCommand(line);
             // in case of a new scope creation
-            else if (line.trim().endsWith("{")) lineNum += scopeCreation(line, lineNum) -1;
+            else if (line.trim().endsWith(REGEX_OPEN_BRACKET)) lineNum += scopeCreation(line, lineNum) -1;
             // in case of invalid line syntax
             else {
                 throw new InvalidSyntax(line);
@@ -119,23 +156,25 @@ public class Scope {
      * @throws VariableError If there is Variable error.
      */
     private int scopeCreation(String line, int lineNum) throws ScopeError, MethodError, VariableError {
-        Pattern pattern1 = Pattern.compile("^\\s*(if|while)\\s*\\(.*\\)\\s*");
-        Pattern pattern2 = Pattern.compile("^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(.*\\)\\s*");
+        Pattern pattern1 = Pattern.compile(REGEX_CONDITION);
+        Pattern pattern2 = Pattern.compile(REGEX_METHOD);
 
-        // matcher (without the "{")
-        Matcher matcher1 = pattern1.matcher(line.substring(0, line.length() - 1));
-        Matcher matcher2 = pattern2.matcher(line.substring(0, line.length() - 1));
+        // without the "{"
+        String substringLine = line.substring(ZERO, line.length() - ONE);
+
+        Matcher matcher1 = pattern1.matcher(substringLine);
+        Matcher matcher2 = pattern2.matcher(substringLine);
 
         // if/while statement
         if (matcher1.find()) {
-            return scopeCreationAUX(lineNum,"ifWhile", line);
+            return scopeCreationAUX(lineNum,TYPE_IF_OR_WHILE, line);
         }
         // a method declaration statement
         else if (matcher2.find()) {
-            if (matcher2.group(REGEX_VARIABLE).equals("void")) {
-                if (this.outerScope != null) throw new InvalidMethodCreation(matcher2.group(REGEX_VALUE));
-                else return scopeCreationAUX(lineNum, "method", matcher2.group(REGEX_VALUE));
-            } else throw new BadMethodType(matcher2.group(REGEX_VARIABLE));
+            if (matcher2.group(ONE).equals(METHOD_TYPE_VOID)) {
+                if (this.outerScope != null) throw new InvalidMethodCreation(matcher2.group(THREE));
+                else return scopeCreationAUX(lineNum, TYPE_METHOD, matcher2.group(THREE));
+            } else throw new BadMethodType(matcher2.group(ONE));
         }
         // in case the line ends with "{" but no void/if/while with a valid s-java declaration
         else throw new InvalidScopeDeclaration();
@@ -161,7 +200,7 @@ public class Scope {
         for (int i = lineNum; i < innerScopeSize + lineNum - 1; i++) {
             innerScopeData.add(this.rawData.get(i));
         }
-        if (type.equals("method")) {
+        if (type.equals(TYPE_METHOD)) {
             Method method = new Method(innerScopeData, this, name);
             this.innerScopes.add(method);
         }
@@ -191,7 +230,7 @@ public class Scope {
     public void singleLineCommand(String line)
             throws VariableError, InvalidCommand, InvalidMethodCall, InvalidSyntax {
         String trimmedLine = line.trim();
-        trimmedLine = trimmedLine.substring(0,trimmedLine.length()-1);
+        trimmedLine = trimmedLine.substring(ZERO,trimmedLine.length()-ONE);
         // New Variable declarations
         if (possibleVariableDeclaration(trimmedLine)) declareNewVariables(trimmedLine);
         // A Method call
@@ -221,10 +260,11 @@ public class Scope {
     /**
      * Checks if the given line is a valid s-Java return statement line.
      * @param line The line to be checked.
-     * @return True in case the given line is a valid s-Java return statement inside a method, false otherwise.
+     * @return True in case the given line is a valid s-Java return statement inside a method,
+     * false otherwise.
      */
     private boolean isReturnLine(String line) {
-        Pattern pattern = Pattern.compile("^\\s*return\\s*;\\s*$");
+        Pattern pattern = Pattern.compile(REGEX_RETURN);
         Matcher matcher = pattern.matcher(line);
         return matcher.find() && callFromMethod();
     }
@@ -235,8 +275,8 @@ public class Scope {
      * @return True in case the line holds a valid s-Java method call, false otherwise.
      */
     private boolean possibleMethodCall(String line) {
-        Pattern pattern = Pattern.compile("^\\s*([a-zA-Z0-9_]+)\\s*(\\(.*\\))\\s*$");
-        Matcher matcher = pattern.matcher(line.substring(0, line.length()-1)); // removing the '}'
+        Pattern pattern = Pattern.compile(REGEX_POSSIBLE_METHOD);
+        Matcher matcher = pattern.matcher(line.substring(ZERO, line.length() - ONE)); // removes the '}'
         return matcher.find();
     }
 
@@ -247,9 +287,10 @@ public class Scope {
      * @return True in case the line decodes for a variable declaration, false otherwise.
      */
     private boolean possibleVariableDeclaration(String line) {
-        return (line.trim().startsWith("final") || line.trim().startsWith("int") ||
-                line.trim().startsWith("double") || line.trim().startsWith("String")
-                || line.trim().startsWith("boolean") || line.trim().startsWith("char"));
+        return (line.trim().startsWith(VARIABLE_FINAL) || line.trim().startsWith(VARIABLE_TYPE_INT) ||
+                line.trim().startsWith(VARIABLE_TYPE_DOUBLE) || line.trim().startsWith(VARIABLE_TYPE_STRING)
+                || line.trim().startsWith(VARIABLE_TYPE_BOOLEAN) ||
+                line.trim().startsWith(VARIABLE_TYPE_CHAR));
     }
 
     /**
@@ -259,28 +300,28 @@ public class Scope {
      * @throws InvalidCommand If there is an invalid command (not an assignment).
      */
     private void assignExistingVariable(String line) throws VariableError, InvalidCommand{
-        Pattern pattern = Pattern.compile("^(\\S+)\\s*=\\s*(\\S+)$");
-        String[] assignmentsStr = line.split(",");
+        Pattern pattern = Pattern.compile(REGEX_POSSIBLE_ASSIGN);
+        String[] assignmentsStr = line.split(REGEX_COMA);
         for (String possibleAssignment: assignmentsStr){
             Matcher matcher = pattern.matcher(possibleAssignment);
             if (matcher.find()) {
                 Scope curScope = this;
                 while (curScope != null) {
-                    if (curScope.arguments.containsKey(matcher.group(REGEX_VARIABLE))) {
-                        curScope.arguments.get(matcher.group(REGEX_VARIABLE)).
-                                setData(matcher.group(REGEX_VALUE), false, this);
+                    if (curScope.arguments.containsKey(matcher.group(ONE))) {
+                        curScope.arguments.get(matcher.group(ONE)).
+                                setData(matcher.group(TWO), false, this);
                         return;
                     }
-                    if (curScope.variables.containsKey(matcher.group(REGEX_VARIABLE))) {
-                        curScope.variables.get(matcher.group(REGEX_VARIABLE)).
-                                setData(matcher.group(REGEX_VALUE), false, this);
+                    if (curScope.variables.containsKey(matcher.group(ONE))) {
+                        curScope.variables.get(matcher.group(ONE)).
+                                setData(matcher.group(TWO), false, this);
                         return;
                     }
                     curScope = curScope.outerScope;
                 }
                 if (callFromMethod()) {
                 GlobalVariablesChecker.addAssignment(possibleAssignment); }
-                else throw new VariableDoesNotExist(matcher.group(REGEX_VARIABLE));
+                else throw new VariableDoesNotExist(matcher.group(ONE));
             } else throw new InvalidCommand(line);
         }
 
@@ -292,19 +333,20 @@ public class Scope {
      * @throws VariableError If one of the possible deceleration fails.
      */
     private void declareNewVariables(String line) throws VariableError, InvalidSyntax {
-        String configStr = "";
-        String[] separatedWords = line.split(" ");
-        if (separatedWords.length >= 2) {
-            configStr += separatedWords[0] + " ";
-            if (separatedWords[0].equals("final")) configStr += separatedWords[1] + " ";
+        String configStr = VARIABLE_INIT_CONFIG;
+        String[] separatedWords = line.split(REGEX_SINGLE_SPACE);
+        if (separatedWords.length >= TWO) {
+            configStr += separatedWords[ZERO] + REGEX_SINGLE_SPACE;
+            if (separatedWords[ZERO].equals(VARIABLE_FINAL)) configStr += separatedWords[ONE] +
+                    REGEX_SINGLE_SPACE;
         }
         try {
-            line = line.replaceFirst(configStr, "");
+            line = line.replaceFirst(configStr, VARIABLE_INIT_CONFIG);
         } catch (PatternSyntaxException e){
             throw new BadVariableDeclaration(line,false);
         }
-        if (line.endsWith(",")) throw new BadVariableDeclaration(line,false);
-        String[] variablesStr = line.split(",");
+        if (line.endsWith(REGEX_COMA)) throw new BadVariableDeclaration(line,false);
+        String[] variablesStr = line.split(REGEX_COMA);
         for (String variableStr: variablesStr) {
             if (variableStr.isEmpty()) throw new InvalidSyntax(line);
             Variable variable = new Variable(configStr +
@@ -323,20 +365,20 @@ public class Scope {
      * @throws BadBracketsStructure If there is a bad brackets structure.
      */
     private int findInnerScopeSize(int lineNum) throws BadBracketsStructure {
-        int scopeSize = 1;
-        int openBracketsNum = 1;
-        int closedBracketsNum = 0;
+        int scopeSize = ONE;
+        int openBracketsNum = ONE;
+        int closedBracketsNum = ZERO;
         while (lineNum < this.rawData.size() && ((openBracketsNum - closedBracketsNum) != 0)) {
             lineNum++;
             try {
-                if (this.rawData.get(lineNum).trim().endsWith("{")) openBracketsNum++;
-                if (this.rawData.get(lineNum).trim().equals("}")) closedBracketsNum++;
+                if (this.rawData.get(lineNum).trim().endsWith(REGEX_OPEN_BRACKET)) openBracketsNum++;
+                if (this.rawData.get(lineNum).trim().equals(REGEX_CLOSED_BRACKET)) closedBracketsNum++;
             } catch (IndexOutOfBoundsException e) {
                 throw new BadBracketsStructure(this.name);
             }
             scopeSize++;
         }
-        if ((openBracketsNum - closedBracketsNum) != 0) throw new BadBracketsStructure(this.name);
+        if ((openBracketsNum - closedBracketsNum) != ZERO) throw new BadBracketsStructure(this.name);
         return scopeSize;
     }
 
