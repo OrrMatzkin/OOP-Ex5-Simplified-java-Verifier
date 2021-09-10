@@ -114,7 +114,7 @@ public class Scope {
      * @throws VariableError If there is Variable error.
      */
     private int scopeCreation(String line, int lineNum) throws ScopeError, MethodError, VariableError {
-        Pattern pattern1 = Pattern.compile("^\\s*(if|while)(\\s*)*\\(.*\\)\\s*");
+        Pattern pattern1 = Pattern.compile("^\\s*(if|while)\\s*\\(.*\\)\\s*");
         Pattern pattern2 = Pattern.compile("^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(.*\\)\\s*");
 
         // matcher (without the "{")
@@ -128,8 +128,8 @@ public class Scope {
         // a method declaration statement
         else if (matcher2.find()) {
             if (matcher2.group(1).equals("void")) {
-                if (this.outerScope != null) throw new InvalidMethodCreation(matcher2.group(3));
-                else return scopeCreationAUX(lineNum, "method", matcher2.group(3));
+                if (this.outerScope != null) throw new InvalidMethodCreation(matcher2.group(2));
+                else return scopeCreationAUX(lineNum, "method", matcher2.group(2));
             } else throw new BadMethodType(matcher2.group(1));
         }
         // in case the line ends with "{" but no void/if/while with a valid s-java declaration

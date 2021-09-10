@@ -68,6 +68,8 @@ public class Variable {
         }
     }
 
+
+
     /**
      * A generic Data class for Variable.
      * @param <T> The data type (int/double/String/char/boolean).
@@ -385,21 +387,10 @@ public class Variable {
     }
 
     /**
-     * Gets the argument status.
-     *
-     * @return True if the Variable is an arguments of a method, else false.
-     */
-    public boolean isArgument() {
-        return isArgument;
-    }
-
-    /**
      * Removes the Variable object from the existing variables hash set.
      */
     public void delete() {
         existingVariables.remove(this.name);
     }
-
-
 }
 
