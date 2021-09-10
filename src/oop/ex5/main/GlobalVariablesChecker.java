@@ -14,6 +14,11 @@ import java.util.regex.Pattern;
 public class GlobalVariablesChecker {
 
     /**
+     * The value used in the regex group operation.
+     */
+    private final static int  REGEX_VARIABLE = 1, REGEX_VALUE = 2;
+
+    /**
      * A list of Strings which holds all possible variables assignments from Method scopes.
      */
     public static List<String> globalVariablesAssignments = new ArrayList<>();
@@ -76,10 +81,10 @@ public class GlobalVariablesChecker {
         for (String possibleAssignment : globalVariablesAssignments) {
             Matcher matcher = pattern.matcher(possibleAssignment);
             if (matcher.find()) {
-                if (curScope.variables.containsKey(matcher.group(1))) {
-                    curScope.variables.get(matcher.group(1)).setData(matcher.group(2), false, Scope.globalScope);
+                if (curScope.variables.containsKey(matcher.group(REGEX_VARIABLE))) {
+                    curScope.variables.get(matcher.group(REGEX_VARIABLE)).setData(matcher.group(REGEX_VALUE), false, Scope.globalScope);
                 }
-                else throw new VariableDoesNotExist(matcher.group(1));
+                else throw new VariableDoesNotExist(matcher.group(REGEX_VARIABLE));
             }
         }
     }
@@ -101,10 +106,9 @@ public class GlobalVariablesChecker {
     /**
      * This method checks if all possible condition (with the use of global scope variables) are valid.
      * @throws VariableError In case the condition is of a bad s-Java condition type.
-     * @throws MethodError In case the condition appeared in a non-method scope.
      * @throws ScopeError In case of an invalid s-Java condition.
      */
-    public static void checkGlobalCondition() throws VariableError, MethodError, ScopeError {
+    public static void checkGlobalCondition() throws VariableError, ScopeError {
         for (String variableStr : globalVariablesCondition.keySet()){
             Variable variable = Variable.existingVariables.get(variableStr);
             Variable argument = Variable.existingArguments.get(variableStr);

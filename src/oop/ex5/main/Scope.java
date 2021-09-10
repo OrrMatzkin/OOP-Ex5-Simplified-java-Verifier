@@ -20,6 +20,11 @@ import java.util.regex.PatternSyntaxException;
 public class Scope {
 
     /**
+     * The value used in the regex group operation.
+     */
+    private final static int  REGEX_VARIABLE = 1, REGEX_VALUE = 2;
+
+    /**
      * A static variable which hold a reference to the program's global scope.
      */
     public static Scope globalScope;
@@ -127,10 +132,10 @@ public class Scope {
         }
         // a method declaration statement
         else if (matcher2.find()) {
-            if (matcher2.group(1).equals("void")) {
-                if (this.outerScope != null) throw new InvalidMethodCreation(matcher2.group(2));
-                else return scopeCreationAUX(lineNum, "method", matcher2.group(2));
-            } else throw new BadMethodType(matcher2.group(1));
+            if (matcher2.group(REGEX_VARIABLE).equals("void")) {
+                if (this.outerScope != null) throw new InvalidMethodCreation(matcher2.group(REGEX_VALUE));
+                else return scopeCreationAUX(lineNum, "method", matcher2.group(REGEX_VALUE));
+            } else throw new BadMethodType(matcher2.group(REGEX_VARIABLE));
         }
         // in case the line ends with "{" but no void/if/while with a valid s-java declaration
         else throw new InvalidScopeDeclaration();
@@ -261,21 +266,21 @@ public class Scope {
             if (matcher.find()) {
                 Scope curScope = this;
                 while (curScope != null) {
-                    if (curScope.arguments.containsKey(matcher.group(1))) {
-                        curScope.arguments.get(matcher.group(1)).
-                                setData(matcher.group(2), false, this);
+                    if (curScope.arguments.containsKey(matcher.group(REGEX_VARIABLE))) {
+                        curScope.arguments.get(matcher.group(REGEX_VARIABLE)).
+                                setData(matcher.group(REGEX_VALUE), false, this);
                         return;
                     }
-                    if (curScope.variables.containsKey(matcher.group(1))) {
-                        curScope.variables.get(matcher.group(1)).
-                                setData(matcher.group(2), false, this);
+                    if (curScope.variables.containsKey(matcher.group(REGEX_VARIABLE))) {
+                        curScope.variables.get(matcher.group(REGEX_VARIABLE)).
+                                setData(matcher.group(REGEX_VALUE), false, this);
                         return;
                     }
                     curScope = curScope.outerScope;
                 }
                 if (callFromMethod()) {
                 GlobalVariablesChecker.addAssignment(possibleAssignment); }
-                else throw new VariableDoesNotExist(matcher.group(1));
+                else throw new VariableDoesNotExist(matcher.group(REGEX_VARIABLE));
             } else throw new InvalidCommand(line);
         }
 

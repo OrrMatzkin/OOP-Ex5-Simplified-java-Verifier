@@ -12,6 +12,11 @@ import java.util.regex.Pattern;
 public class MethodCallsChecker {
 
     /**
+     * The value used in the regex group operation.
+     */
+    private final static int  REGEX_VARIABLE = 1, REGEX_VALUE = 2;
+
+    /**
      * A list of String, which holds all the code lines in which
      * a method is to be called.
      */
@@ -50,8 +55,8 @@ public class MethodCallsChecker {
         for (String call: calls) {
             matcher = pattern.matcher(call.substring(0, call.length()-1));
             if (matcher.find()) {
-                methodName = matcher.group(1);
-                arguments = matcher.group(2).substring(1, matcher.group(2).length() - 1);
+                methodName = matcher.group(REGEX_VARIABLE);
+                arguments = matcher.group(REGEX_VALUE).substring(1, matcher.group(REGEX_VALUE).length() - 1);
                 if (Method.allMethods.containsKey(methodName))
                     checkPossibleArguments(Method.allMethods.get(methodName), arguments);
                 else throw new MethodDoesNotExist(methodName);

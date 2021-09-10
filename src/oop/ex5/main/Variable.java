@@ -10,6 +10,11 @@ import java.util.regex.Pattern;
 public class Variable {
 
     /**
+     * The value used in the regex group operation.
+     */
+    private final static int  REGEX_VARIABLE = 1, REGEX_VALUE = 2, REGEX_ARGUMENT = 3;
+
+    /**
      * All the current existing variables n the program sorted in a HashMap (name, Variable objects).
      */
     public static HashMap<String, Variable> existingVariables = new HashMap<>();
@@ -168,19 +173,19 @@ public class Variable {
         Matcher partMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)$").matcher(initializeLine.trim());
         // with initialization (<Type> <Name> <=> <Data>)
         if (fullMatcher.find()) {
-            if (this.isArgument) throw new VariableInitInMethodDeclaration(fullMatcher.group(2));
-            this.type = extractType(fullMatcher.group(1));
-            this.name = extractName(fullMatcher.group(2));
-            this.data = extractData(fullMatcher.group(3),
+            if (this.isArgument) throw new VariableInitInMethodDeclaration(fullMatcher.group(REGEX_VALUE));
+            this.type = extractType(fullMatcher.group(REGEX_VARIABLE));
+            this.name = extractName(fullMatcher.group(REGEX_VALUE));
+            this.data = extractData(fullMatcher.group(REGEX_ARGUMENT),
                     false, initializeLine.trim(), this.declaredScope);
             this.isInitialized = true;
             this.initializedScope = declaredScope;
         }
         // if this is variable is not going to be initialized yet (<Type> <Name>)
         else if (partMatcher.find()) {
-            if (this.isFinal && !this.isArgument) throw new UninitializedFinalVariable(partMatcher.group(2));
-            this.type = extractType(partMatcher.group(1));
-            this.name = extractName(partMatcher.group(2));
+            if (this.isFinal && !this.isArgument) throw new UninitializedFinalVariable(partMatcher.group(REGEX_VALUE));
+            this.type = extractType(partMatcher.group(REGEX_VARIABLE));
+            this.name = extractName(partMatcher.group(REGEX_VALUE));
             this.isInitialized = false;
         } else throw new BadVariableDeclaration(initializeLine, this.isArgument);
     }
@@ -272,9 +277,9 @@ public class Variable {
             case DOUBLE:
                 return new Data<>(Double.parseDouble(dataStr));
             case STRING:
-                return new Data<>(matcher.group(1));
+                return new Data<>(matcher.group(REGEX_VARIABLE));
             case CHAR:
-                return new Data<>(matcher.group(1).charAt(0));
+                return new Data<>(matcher.group(REGEX_VARIABLE).charAt(0));
             case BOOLEAN:
                 if (dataStr.equals("true") || dataStr.equals("false"))
                     return new Data<>(Boolean.parseBoolean(dataStr));
