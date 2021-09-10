@@ -70,7 +70,6 @@ public class Variable {
 
     /**
      * A generic Data class for Variable.
-     *
      * @param <T> The data type (int/double/String/char/boolean).
      */
     private static class Data<T> {
@@ -82,7 +81,6 @@ public class Variable {
 
         /**
          * The constructor of the Data.
-         *
          * @param value The value of the Data.
          */
         Data(T value) {
@@ -91,7 +89,6 @@ public class Variable {
 
         /**
          * Converts and returns the value of the data to String.
-         *
          * @return The value of the Data as a String.
          */
         @Override
@@ -163,15 +160,17 @@ public class Variable {
      * @param initializeLine The initialize line without the final keyword.
      * @throws VariableError If updating the parameter is unsuccessful it throws a VariableError.
      */
-    public void updateParameters(String initializeLine) throws VariableError {
-        Matcher fullMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)\\s*=\\s*(.*)$").matcher(initializeLine.trim());
+    private void updateParameters(String initializeLine) throws VariableError {
+        Matcher fullMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)\\s*=\\s*(.*)$").
+                matcher(initializeLine.trim());
         Matcher partMatcher = Pattern.compile("^(\\S+)\\s+(\\S+)$").matcher(initializeLine.trim());
         // with initialization (<Type> <Name> <=> <Data>)
         if (fullMatcher.find()) {
             if (this.isArgument) throw new VariableInitInMethodDeclaration(fullMatcher.group(2));
             this.type = extractType(fullMatcher.group(1));
             this.name = extractName(fullMatcher.group(2));
-            this.data = extractData(fullMatcher.group(3), false, initializeLine.trim(), this.declaredScope);
+            this.data = extractData(fullMatcher.group(3),
+                    false, initializeLine.trim(), this.declaredScope);
             this.isInitialized = true;
             this.initializedScope = declaredScope;
         }
@@ -191,27 +190,25 @@ public class Variable {
      * @return the Type of the Variable.
      * @throws VariableError If the given Type is invalid throws a VariableError.
      */
-    public Type extractType(String typeStr) throws VariableError {
+    private Type extractType(String typeStr) throws VariableError {
         Matcher matcher;
         for (Type type : Type.values()) {
             matcher = type.typePattern.matcher(typeStr);
-            if (matcher.find()) {
-                return type;
-            }
+            if (matcher.find()) return type;
         }
         throw new BadVariableType(typeStr);
     }
 
     /**
      * Finds the Variable name.
-     *
      * @param nameStr The name String (from the initializing line).
      * @return The name of the Variable.
      * @throws VariableError If the given name is invalid throws a VariableError.
      */
-    public String extractName(String nameStr) throws VariableError {
+    private String extractName(String nameStr) throws VariableError {
         // if the name is already taken in this scope
-        if (this.declaredScope.variables.containsKey(nameStr) || this.declaredScope.arguments.containsKey(nameStr))
+        if (this.declaredScope.variables.containsKey(nameStr) ||
+                this.declaredScope.arguments.containsKey(nameStr))
             throw new BadVariableNameAlreadyExists(nameStr);
         // if the name starts with a digit
         if (Pattern.compile("^\\d").matcher(nameStr).find()) {
@@ -238,15 +235,16 @@ public class Variable {
      * @return The matching Data class with the a data value.
      * @throws VariableError If the Variable data is invalid.
      */
-    public Data<?> extractData(String dataStr, boolean isFromCallsHandler, String initializeLine, Scope scope) throws VariableError {
+    private Data<?> extractData(String dataStr, boolean isFromCallsHandler, String initializeLine, Scope scope)
+            throws VariableError {
         // checks for an already existing variable or argument
         Variable existingVariable = getExistsInVariablesOrArguments(dataStr);
         if (existingVariable != null) {
-
             if (!existingVariable.isArgument &&
-                    (!existingVariable.isInitialized || !initializedInOuterScope(existingVariable, scope, isFromCallsHandler)))
+                    (!existingVariable.isInitialized ||
+                            !initializedInOuterScope(existingVariable, scope, isFromCallsHandler)))
                 throw new UninitializedParameter(existingVariable.getName());
-
+            // checks if this is a valid casting
             else if (this.getType().equals(existingVariable.getType()) ||
                     (this.type == Type.DOUBLE && existingVariable.getType().equals("INT")) ||
                     (this.type == Type.BOOLEAN && (existingVariable.getType().equals("INT")
@@ -255,6 +253,7 @@ public class Variable {
             } else throw new IllegalVariableCasting(this, existingVariable);
         }
 
+        // creates a new data value
         Matcher matcher = this.type.valuePattern.matcher(dataStr);
         if (!matcher.find()) {
             // if the variable is self assigned
@@ -262,11 +261,9 @@ public class Variable {
             // if there is no existing variable or argument
             if (this.declaredScope.callFromMethod() && initializeLine != null) {
                 GlobalVariablesChecker.addDeclaration(initializeLine);
-                // System.out.println("adding Global declaration " + initializeLine);
                 return null;
             } else throw new BadVariableData(this, dataStr);
         }
-
         switch (this.type) {
             case INT:
                 return new Data<>(Integer.parseInt(dataStr));
@@ -307,8 +304,7 @@ public class Variable {
     /**
      * This method returns a reference to a Variable with a key equals to the
      * given String. The Variable returned may be a variable, an argument, or a null
-     * pointer in case no variable or argument with a key equals to the given String was
-     * found.
+     * pointer in case no variable or argument with a key equals to the given String was found.
      * @param dataStr A String of the desired Variable key.
      * @return A reference to the desired variable, or a null pointer in case no
      * matching varible was found.
