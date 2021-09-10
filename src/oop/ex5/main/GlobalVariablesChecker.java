@@ -34,12 +34,10 @@ public class GlobalVariablesChecker {
      */
     public static HashMap<String, Scope> globalVariablesCondition = new HashMap<>();
 
-
     /**
      * the Class constructor.
      */
     private GlobalVariablesChecker() {}
-
 
     /**
      * This method adds a possible global scope assignment to the relevant
@@ -77,12 +75,13 @@ public class GlobalVariablesChecker {
      */
     public static void checkGlobalAssignments() throws VariableError {
         Scope curScope = Scope.globalScope;
-        Pattern pattern = Pattern.compile("^(\\S+) *= *(\\S+)$");
+        Pattern pattern = Pattern.compile(Scope.REGEX_POSSIBLE_ASSIGN);
         for (String possibleAssignment : globalVariablesAssignments) {
             Matcher matcher = pattern.matcher(possibleAssignment);
             if (matcher.find()) {
                 if (curScope.variables.containsKey(matcher.group(REGEX_VARIABLE))) {
-                    curScope.variables.get(matcher.group(REGEX_VARIABLE)).setData(matcher.group(REGEX_VALUE), false, Scope.globalScope);
+                    curScope.variables.get(matcher.group(REGEX_VARIABLE)).setData(matcher.group(REGEX_VALUE),
+                            false, Scope.globalScope);
                 }
                 else throw new VariableDoesNotExist(matcher.group(REGEX_VARIABLE));
             }
@@ -97,9 +96,10 @@ public class GlobalVariablesChecker {
      * @throws VariableError In case the assignment is invalid.
      * @throws InvalidSyntax In case there is a problem with the declaration syntax.
      */
-    public static void checkGlobalDeclaration() throws InvalidCommand, InvalidMethodCall, VariableError, InvalidSyntax {
+    public static void checkGlobalDeclaration()
+            throws InvalidCommand, InvalidMethodCall, VariableError, InvalidSyntax {
         for (String declaration: globalVariablesDeclaration) {
-            Scope.globalScope.singleLineCommand(declaration + ";");
+            Scope.globalScope.singleLineCommand(declaration + Scope.REGEX_SEMICOLON);
         }
     }
 
@@ -113,19 +113,23 @@ public class GlobalVariablesChecker {
             Variable variable = Variable.existingVariables.get(variableStr);
             Variable argument = Variable.existingArguments.get(variableStr);
             if (variable != null) {
-                if (variable.initializedScope != Scope.globalScope) throw new InvalidConditionException(variableStr);
+                if (variable.initializedScope != Scope.globalScope)
+                    throw new InvalidConditionException(variableStr);
                 if (!variable.isInitialized()) throw new UninitializedVariable(variableStr);
-                else if (!variable.getType().equals("BOOLEAN") && !variable.getType().equals("INT") && !variable.getType().equals("DOUBLE"))
+                else if (!variable.getType().equals(Scope.VARIABLE_TYPE_BOOLEAN.toUpperCase()) &&
+                        !variable.getType().equals(Scope.VARIABLE_TYPE_INT.toUpperCase()) &&
+                        !variable.getType().equals(Scope.VARIABLE_TYPE_DOUBLE.toUpperCase()))
                         throw new InvalidConditionException(variableStr);
                 else return;
                 }
             if (argument != null) {
-                if (!argument.getType().equals("BOOLEAN") && !argument.getType().equals("INT") && !argument.getType().equals("DOUBLE"))
+                if (!argument.getType().equals(Scope.VARIABLE_TYPE_BOOLEAN.toUpperCase()) &&
+                        !argument.getType().equals(Scope.VARIABLE_TYPE_INT.toUpperCase()) &&
+                        !argument.getType().equals(Scope.VARIABLE_TYPE_DOUBLE.toUpperCase()))
                     throw new InvalidConditionException(variableStr);
                 else return;
             }
             throw new InvalidConditionException(variableStr);
         }
     }
-
 }
