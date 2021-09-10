@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * A singleton Class which holds references to the existing methods
  * in the program, alongside their names.
  */
-public class CallsHandler {
+public class MethodCallsChecker {
 
     /**
      * A list of String, which holds all the code lines in which
@@ -17,23 +17,11 @@ public class CallsHandler {
      */
     public static List<String> calls = new ArrayList<>();
 
-    /**
-     * The Class's single instance.
-     */
-    public static CallsHandler singleInstance = new CallsHandler();
 
     /**
      * The Class constructor.
      */
-    private CallsHandler() {
-    }
-
-    /**
-     * The single instance getter.
-     * @return a reference to the Class's single instance.
-     */
-    public static CallsHandler getSingleInstance() {
-        return singleInstance;
+    private MethodCallsChecker() {
     }
 
     /**
@@ -54,7 +42,7 @@ public class CallsHandler {
      *                       method arguments type.
      * @throws MethodDoesNotExist In case of a call to a non-existing method.
      */
-    public void callValidity() throws BadArgumentsNum, VariableError, MethodDoesNotExist {
+    public static void CheckCalls() throws BadArgumentsNum, VariableError, MethodDoesNotExist {
         Pattern pattern = Pattern.compile("\\s*([a-zA-Z0-9_]+)\\s*(\\(.*\\))\\s*");
         Matcher matcher;
         String methodName;
@@ -79,7 +67,7 @@ public class CallsHandler {
      * @throws BadArgumentsNum In case of an inappropriate number of arguments.
      * @throws VariableError In case of an inappropriate arguments type.
      */
-    public void checkPossibleArguments(Method scope, String arguments) throws BadArgumentsNum, VariableError {
+    private static void checkPossibleArguments(Method scope, String arguments) throws BadArgumentsNum, VariableError {
         String[] splitArguments = arguments.split(",");
         // in case no arguments needed
         if (splitArguments[0].equals("") && scope.arguments.size() == 0) return;

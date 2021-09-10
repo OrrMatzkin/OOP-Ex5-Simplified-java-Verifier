@@ -29,30 +29,19 @@ public class GlobalVariablesChecker {
      */
     public static HashMap<String, Scope> globalVariablesCondition = new HashMap<>();
 
-    /**
-     * The Class's single instacne.
-     */
-    public static GlobalVariablesChecker singleInstance = new GlobalVariablesChecker();
 
     /**
      * the Class constructor.
      */
     private GlobalVariablesChecker() {}
 
-    /**
-     * the single instance getter
-     * @return a reference to the Class's single instance
-     */
-    public static GlobalVariablesChecker getSingleInstance() {
-        return singleInstance;
-    }
 
     /**
      * This method adds a possible global scope assignment to the relevant
      * list.
      * @param assignment A string contains the relevant assignment.
      */
-    public static void addAssigment(String assignment) {
+    public static void addAssignment(String assignment) {
         globalVariablesAssignments.add(assignment);
     }
 
