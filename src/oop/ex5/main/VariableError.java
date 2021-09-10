@@ -23,7 +23,8 @@ class BadVariableDeclaration extends VariableError {
      * The Error constructor.
      */
     public BadVariableDeclaration(String initializeLine, boolean isArguments) {
-        super("'" + initializeLine + "' is not a valid " + ((isArguments) ? "argument" : "variable") + " declaration");
+        super("'" + initializeLine + "' is not a valid " +
+                ((isArguments) ? "argument" : "variable") + " declaration.");
     }
 }
 
@@ -145,7 +146,7 @@ class VariableDoesNotExist extends VariableError {
      * The Error constructor.
      */
     public VariableDoesNotExist(String name) {
-        super("Cannot resolve symbol '" + name + "'");
+        super("Cannot resolve symbol '" + name + "'.");
     }
 }
 
@@ -157,7 +158,7 @@ class InvalidVariableAssignment extends VariableError {
      * The Error constructor.
      */
     public InvalidVariableAssignment(String possibleAssignment) {
-        super(possibleAssignment + " is not a valid assignment");
+        super(possibleAssignment + " is not a valid assignment.");
     }
 }
 
@@ -169,7 +170,7 @@ class UninitializedParameter extends VariableError {
      * The Error constructor.
      */
     UninitializedParameter(String param) {
-        super( param + " is not initialized");
+        super( param + " is not initialized.");
     }
 }
 
@@ -205,7 +206,8 @@ class UninitializedFinalVariable extends VariableError {
      * The Error constructor.
      */
     UninitializedFinalVariable(String variable) {
-        super("Final " + variable + " is uninitialized.");
+        super("Final " + variable +
+                " is uninitialized.");
     }
 }
 
@@ -217,7 +219,8 @@ class SelfAssign extends VariableError {
      * The Error constructor.
      */
     SelfAssign(String variable) {
-        super("Variable '"+variable+"' might not have been initialized.");
+        super("Variable '" + variable + "'" +
+                " might not have been initialized.");
     }
 }
 

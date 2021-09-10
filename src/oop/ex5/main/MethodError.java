@@ -3,7 +3,7 @@ package oop.ex5.main;
 /**
  * a class of Method errors exceptions.
  */
-public class MethodError  extends Exception {
+public class MethodError extends Exception {
 
     /**
      * super constructor for a Method Error
@@ -12,18 +12,6 @@ public class MethodError  extends Exception {
      */
     public MethodError(String errorMessage) {
         super(errorMessage);
-    }
-}
-
-/**
- * Bad Method declaration, used only when there is a general fault.
- */
-class BadMethodDeclaration extends MethodError {
-    /**
-     * The Error constructor.
-     */
-    public BadMethodDeclaration() {
-        super("Declaration line is invalid");
     }
 }
 
@@ -83,7 +71,8 @@ class BadMethodNameAlreadyExists extends MethodError {
      * The Error constructor.
      */
     public BadMethodNameAlreadyExists(String name) {
-        super("'Method '" + name + "' is already defined.");
+        super("'Method '" + name +
+                "' is already defined.");
     }
 }
 
@@ -107,7 +96,7 @@ class MethodDoesNotExist extends MethodError {
      * The Error constructor.
      */
     public MethodDoesNotExist(String name) {
-        super("Cannot resolve symbol '" + name + "'");
+        super("Cannot resolve symbol '" + name + "'.");
     }
 }
 
@@ -119,7 +108,7 @@ class MissingReturnStatement extends MethodError {
      * The Error constructor.
      */
     public MissingReturnStatement(Method method) {
-        super("Missing return statement in '" + method.getName() + "' method");
+        super("Missing return statement in '" + method.getName() + "' method.");
     }
 }
 
@@ -144,7 +133,8 @@ class InvalidMethodCreation extends MethodError {
      * The Error constructor.
      */
     InvalidMethodCreation(String name) {
-        super("'" + name + "' can not be declared inside another Method.");
+        super("'" + name +
+                "' can not be declared inside another Method.");
     }
 }
 
@@ -156,7 +146,8 @@ class InvalidMethodCall extends MethodError {
      * The Error constructor.
      */
     InvalidMethodCall(String name) {
-        super("'" + name + "' can not be called from the global scope.");
+        super("'" + name +
+                "' can not be called from the global scope.");
     }
 }
 
