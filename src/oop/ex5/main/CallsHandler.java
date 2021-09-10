@@ -61,12 +61,13 @@ public class CallsHandler {
         String arguments;
         for (String call: calls) {
             matcher = pattern.matcher(call.substring(0, call.length()-1));
-            matcher.find();
-            methodName = matcher.group(1);
-            arguments = matcher.group(2).substring(1, matcher.group(2).length()-1);
-            if (Method.allMethods.containsKey(methodName))
-                checkPossibleArguments(Method.allMethods.get(methodName), arguments);
-            else throw new MethodDoesNotExist(methodName);
+            if (matcher.find()) {
+                methodName = matcher.group(1);
+                arguments = matcher.group(2).substring(1, matcher.group(2).length() - 1);
+                if (Method.allMethods.containsKey(methodName))
+                    checkPossibleArguments(Method.allMethods.get(methodName), arguments);
+                else throw new MethodDoesNotExist(methodName);
+            } else throw new MethodDoesNotExist(call);
         }
     }
 
@@ -79,14 +80,14 @@ public class CallsHandler {
      * @throws VariableError In case of an inappropriate arguments type.
      */
     public void checkPossibleArguments(Method scope, String arguments) throws BadArgumentsNum, VariableError {
-        String[] splitted = arguments.split(",");
+        String[] splitArguments = arguments.split(",");
         // in case no arguments needed
-        if (splitted[0].equals("") && scope.arguments.size() == 0) return;
+        if (splitArguments[0].equals("") && scope.arguments.size() == 0) return;
         // in case of a wrong number of arguments
-        if (splitted.length != scope.arguments.size()) throw new BadArgumentsNum(scope.getName());
-        List<Variable> orderdArguments = new ArrayList<>(scope.arguments.values());
-        for (int i = 0; i < splitted.length; i++) {
-            orderdArguments.get(i).setData(splitted[i].trim(), true, Scope.globalScope);
+        if (splitArguments.length != scope.arguments.size()) throw new BadArgumentsNum(scope.getName());
+        List<Variable> orderedArguments = new ArrayList<>(scope.arguments.values());
+        for (int i = 0; i < splitArguments.length; i++) {
+            orderedArguments.get(i).setData(splitArguments[i].trim(), true, Scope.globalScope);
         }
     }
 }
