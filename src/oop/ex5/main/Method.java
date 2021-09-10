@@ -1,6 +1,7 @@
 package oop.ex5.main;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +18,7 @@ public class Method extends Scope {
     /**
      * A String which holds the first line of the method (the method's declaration line).
      */
-    protected String declaration;
+    private final String declaration;
 
     /**
      * The Method Class constructor.
@@ -27,7 +28,8 @@ public class Method extends Scope {
      * @throws MethodError If there is Method error.
      * @throws VariableError If there is Variable error.
      */
-    Method(List<String> scopeData, Scope outerScope, String name) throws ScopeError, MethodError, VariableError {
+    public Method(List<String> scopeData, Scope outerScope, String name)
+            throws ScopeError, MethodError, VariableError {
         super(scopeData, outerScope, name);
         this.declaration = this.rawData.get(0);
         // in order to avoid an infinite loop while scanning the scope's
