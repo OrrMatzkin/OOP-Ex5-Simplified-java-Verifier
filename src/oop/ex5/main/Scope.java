@@ -1,6 +1,5 @@
 package oop.ex5.main;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -91,12 +90,11 @@ public class Scope {
         for (int lineNum = 0; lineNum < maxLineNum; lineNum++) {
             line = this.rawData.get(lineNum);
             // in case the current is a comment line or an empty line.
-            if (line.startsWith("//") || line.trim().isEmpty()) continue;
+            if (line.startsWith("//") || line.trim().isEmpty()) {}
             // in case of a declaration or assigment
             else if (line.trim().endsWith(";")) singleLineCommand(line);
             // in case of a new scope creation
-            else if (line.trim().endsWith("{")) lineNum += scopeCreation(line, lineNum, maxLineNum) -1;
-            // in case the current line is empty
+            else if (line.trim().endsWith("{")) lineNum += scopeCreation(line, lineNum) -1;
             // in case of invalid line syntax
             else {
                 throw new InvalidSyntax(line);
@@ -105,19 +103,17 @@ public class Scope {
     }
 
     /**
-     * this method helps to determine whether the scanned line creates a new
+     * This method helps to determine whether the scanned line creates a new
      * method scope or a new if/while scope.
      * @param line the scope's declaration line.
      * @param lineNum the number of the first line in the new declared scope
      *                (with respect to the original scope line counter).
-     * @param maxLineNum the number of the last line in the original scope.
      * @return the new declared scope's size (the number of lines in it).
      * @throws ScopeError If there is Scope error.
      * @throws MethodError If there is Method error.
      * @throws VariableError If there is Variable error.
      */
-    protected int scopeCreation(String line, int lineNum, int maxLineNum)
-            throws ScopeError, MethodError, VariableError {
+    private int scopeCreation(String line, int lineNum) throws ScopeError, MethodError, VariableError {
         Pattern pattern1 = Pattern.compile("^\\s*(if|while)(\\s*)*\\(.*\\)\\s*");
         Pattern pattern2 = Pattern.compile("^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(.*\\)\\s*");
 
@@ -127,28 +123,17 @@ public class Scope {
 
         // if/while statement
         if (matcher1.find()) {
-            // System.out.println("// creates new if/while scope //");
-            int innerScopeSize = scopeCreationAUX(lineNum,"ifWhile", line);
-            // System.out.println("// if/while scope's size is : "+ innerScopeSize + "//\n");
-            return innerScopeSize;
+            return scopeCreationAUX(lineNum,"ifWhile", line);
         }
         // a method declaration statement
         else if (matcher2.find()) {
             if (matcher2.group(1).equals("void")) {
-                if (this.outerScope != null) {
-                    throw new InvalidMethodCreation(matcher2.group(3));
-                }
-                // System.out.println("// creates new method scope //");
-                int innerScopeSize = scopeCreationAUX(lineNum, "method", matcher2.group(3));
-                // System.out.println("// method's size is : "+ innerScopeSize + "//\n");
-                return innerScopeSize;
+                if (this.outerScope != null) throw new InvalidMethodCreation(matcher2.group(3));
+                else return scopeCreationAUX(lineNum, "method", matcher2.group(3));
             } else throw new BadMethodType(matcher2.group(1));
         }
-        // in case the line ends with "{" but no void/if/while with a
-        // valid s-java declaration structure was found
-        else {
-            throw new InvalidScopeDeclaration();
-        }
+        // in case the line ends with "{" but no void/if/while with a valid s-java declaration
+        else throw new InvalidScopeDeclaration();
     }
 
     /**
@@ -163,7 +148,7 @@ public class Scope {
      * @throws MethodError If there is Method error.
      * @throws VariableError If there is Variable error.
      */
-    protected int scopeCreationAUX(int lineNum, String type, String name)
+    private int scopeCreationAUX(int lineNum, String type, String name)
             throws ScopeError, MethodError, VariableError {
         int innerScopeSize = findInnerScopeSize(lineNum);
         List<String> innerScopeData = new ArrayList<>();
@@ -198,25 +183,21 @@ public class Scope {
      * @throws InvalidMethodCall If a method is called not from the global scope.
      * @throws InvalidSyntax In case of an invalid s-Java syntax.
      */
-    public void singleLineCommand(String line) throws VariableError, InvalidCommand, InvalidMethodCall, InvalidSyntax {
+    public void singleLineCommand(String line)
+            throws VariableError, InvalidCommand, InvalidMethodCall, InvalidSyntax {
         String trimmedLine = line.trim();
         trimmedLine = trimmedLine.substring(0,trimmedLine.length()-1);
         // New Variable declarations
-        if (possibleVariableDeclaration(trimmedLine)) {
-            declareNewVariables(trimmedLine);
-        }
+        if (possibleVariableDeclaration(trimmedLine)) declareNewVariables(trimmedLine);
         // A Method call
         else if (possibleMethodCall(line)) {
             if (!callFromMethod()) throw new InvalidMethodCall(line);
-            CallsHandler.addCall(line);
+            MethodCallsChecker.addCall(line);
         }
         // A return statement
-        else if (isReturnLine(line)) {
-        }
+        else if (isReturnLine(line)) {}
         // A Variable assignments
-        else {
-            assignExistingVariable(trimmedLine);
-        }
+        else assignExistingVariable(trimmedLine);
     }
 
     /**
@@ -248,7 +229,7 @@ public class Scope {
      * @param line A String in which a method is to be called.
      * @return True in case the line holds a valid s-Java method call, false otherwise.
      */
-    public boolean possibleMethodCall(String line) {
+    private boolean possibleMethodCall(String line) {
         Pattern pattern = Pattern.compile("^\\s*([a-zA-Z0-9_]+)\\s*(\\(.*\\))\\s*$");
         Matcher matcher = pattern.matcher(line.substring(0, line.length()-1)); // removing the '}'
         return matcher.find();
@@ -281,20 +262,21 @@ public class Scope {
                 Scope curScope = this;
                 while (curScope != null) {
                     if (curScope.arguments.containsKey(matcher.group(1))) {
-                        curScope.arguments.get(matcher.group(1)).setData(matcher.group(2), false, this);
+                        curScope.arguments.get(matcher.group(1)).
+                                setData(matcher.group(2), false, this);
                         return;
                     }
                     if (curScope.variables.containsKey(matcher.group(1))) {
-                        curScope.variables.get(matcher.group(1)).setData(matcher.group(2), false, this);
+                        curScope.variables.get(matcher.group(1)).
+                                setData(matcher.group(2), false, this);
                         return;
                     }
                     curScope = curScope.outerScope;
                 }
                 if (callFromMethod()) {
-                GlobalVariablesChecker.addAssigment(possibleAssignment); }
+                GlobalVariablesChecker.addAssignment(possibleAssignment); }
                 else throw new VariableDoesNotExist(matcher.group(1));
-            } else
-                throw new InvalidCommand(line);
+            } else throw new InvalidCommand(line);
         }
 
     }
@@ -309,12 +291,11 @@ public class Scope {
         String[] separatedWords = line.split(" ");
         if (separatedWords.length >= 2) {
             configStr += separatedWords[0] + " ";
-            if (separatedWords[0].equals("final"))
-                configStr += separatedWords[1] + " ";
+            if (separatedWords[0].equals("final")) configStr += separatedWords[1] + " ";
         }
         try {
-        line = line.replaceFirst(configStr, ""); }
-        catch (PatternSyntaxException e){
+            line = line.replaceFirst(configStr, "");
+        } catch (PatternSyntaxException e){
             throw new BadVariableDeclaration(line,false);
         }
         if (line.endsWith(",")) throw new BadVariableDeclaration(line,false);
@@ -336,7 +317,7 @@ public class Scope {
      * @return the size of the scope (the number of lines in it).
      * @throws BadBracketsStructure If there is a bad brackets structure.
      */
-    protected int findInnerScopeSize(int lineNum) throws BadBracketsStructure {
+    private int findInnerScopeSize(int lineNum) throws BadBracketsStructure {
         int scopeSize = 1;
         int openBracketsNum = 1;
         int closedBracketsNum = 0;
@@ -345,15 +326,12 @@ public class Scope {
             try {
                 if (this.rawData.get(lineNum).trim().endsWith("{")) openBracketsNum++;
                 if (this.rawData.get(lineNum).trim().equals("}")) closedBracketsNum++;
-            }
-            catch (IndexOutOfBoundsException e) {
+            } catch (IndexOutOfBoundsException e) {
                 throw new BadBracketsStructure(this.name);
             }
             scopeSize++;
         }
-        if ((openBracketsNum - closedBracketsNum) != 0) {
-            throw new BadBracketsStructure(this.name);
-        }
+        if ((openBracketsNum - closedBracketsNum) != 0) throw new BadBracketsStructure(this.name);
         return scopeSize;
     }
 
