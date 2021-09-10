@@ -6,6 +6,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * A singleton class with the responsibility of checking variables declarations,
+ * assignments and conditions, when appeared before their actual declaration or
+ * initialization in the global scope.
+ */
 public class GlobalVariablesChecker {
 
     /**
@@ -13,8 +18,15 @@ public class GlobalVariablesChecker {
      */
     public static List<String> globalVariablesAssignments = new ArrayList<>();
 
+    /**
+     * A list of Strings which holds all possible variables declarations from Method scopes.
+     */
     public static List<String> globalVariablesDeclaration = new ArrayList<>();
 
+    /**
+     * A map which holds all possible condition Strings, with their Sconditions scopes from
+     * which they created.
+     */
     public static HashMap<String, Scope> globalVariablesCondition = new HashMap<>();
 
     /**
@@ -37,17 +49,28 @@ public class GlobalVariablesChecker {
 
     /**
      * This method adds a possible global scope assignment to the relevant
-     * list
+     * list.
      * @param assignment A string contains the relevant assignment.
      */
     public static void addAssigment(String assignment) {
         globalVariablesAssignments.add(assignment);
     }
 
+    /**
+     * This method adds a possible global scope declaration to the relevant
+     * list.
+     * @param declaration A string contains the relevant declaration.
+     */
     public static void addDeclaration(String declaration) {
         globalVariablesDeclaration.add(declaration);
     }
 
+    /**
+     * This method adds a possible global scope condition to the relevant
+     * map.
+     * @param condition A string contains the relevant condition.
+     * @param scope The scope from which the condition was created.
+     */
     public static void addCondition(String condition, Scope scope) {
         globalVariablesCondition.put(condition, scope);
     }
@@ -56,7 +79,7 @@ public class GlobalVariablesChecker {
     /**
      * This method iterates over all possible variables assignments (from Method scopes),
      * and checks if the variable was declared in the global scope after the assignments.
-     * @throws VariableError
+     * @throws VariableError In case the assignment is invalid.
      */
     public static void checkGlobalAssignments() throws VariableError {
         Scope curScope = Scope.globalScope;
@@ -72,12 +95,26 @@ public class GlobalVariablesChecker {
         }
     }
 
+    /**
+     * This method iterates over all possible variables declarations (from Method scopes),
+     * and checks if the variable was declared and initialized in the global scope after the declaration.
+     * @throws InvalidCommand In case the declaration command in wrong.
+     * @throws InvalidMethodCall In case the call was done not from a method scope.
+     * @throws VariableError In case the assignment is invalid.
+     * @throws InvalidSyntax In case there is a problem with the declaration syntax.
+     */
     public static void checkGlobalDeclaration() throws InvalidCommand, InvalidMethodCall, VariableError, InvalidSyntax {
         for (String declaration: globalVariablesDeclaration) {
             Scope.globalScope.singleLineCommand(declaration + ";");
         }
     }
 
+    /**
+     * This method checks if all possible condition (with the use of global scope variables) are valid.
+     * @throws VariableError In case the condition is of a bad s-Java condition type.
+     * @throws MethodError In case the condition appeared in a non-method scope.
+     * @throws ScopeError In case of an invalid s-Java condition.
+     */
     public static void checkGlobalCondition() throws VariableError, MethodError, ScopeError {
         for (String variableStr : globalVariablesCondition.keySet()){
             Variable variable = Variable.existingVariables.get(variableStr);
@@ -89,21 +126,12 @@ public class GlobalVariablesChecker {
                         throw new InvalidConditionException(variableStr);
                 else return;
                 }
-
             if (argument != null) {
                 if (!argument.getType().equals("BOOLEAN") && !argument.getType().equals("INT") && !argument.getType().equals("DOUBLE"))
                     throw new InvalidConditionException(variableStr);
                 else return;
             }
             throw new InvalidConditionException(variableStr);
-        }
-
-    }
-
-
-    public static void print() {
-        for (String dec: globalVariablesAssignments) {
-            // System.out.println("GLOBAL: " + dec);
         }
     }
 

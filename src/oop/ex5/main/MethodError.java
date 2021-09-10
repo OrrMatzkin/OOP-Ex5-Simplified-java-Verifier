@@ -1,5 +1,8 @@
 package oop.ex5.main;
 
+/**
+ * a class of Method errors exceptions.
+ */
 public class MethodError  extends Exception {
 
     /**

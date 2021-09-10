@@ -36,10 +36,6 @@ public class Method extends Scope {
         checkNameValidity();
         processArguments();
         if (!this.rawData.isEmpty()) scan();
-//        for (Variable variable: this.variables.values()) {
-//            if (!variable.isArgument())
-//                variable.delete();
-//        }
         if (allMethods.containsKey(this.name)) {
             throw new BadMethodNameAlreadyExists(this.name);
         }
@@ -59,12 +55,9 @@ public class Method extends Scope {
         Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
         matcher.find();
         switch (kind) {
-            case "name":
-                return matcher.group(2);
-            case "arguments":
-                return matcher.group(3);
-            default:
-                return null;
+            case "name": return matcher.group(2);
+            case "arguments": return matcher.group(3);
+            default: return null;
         }
     }
 
@@ -76,11 +69,9 @@ public class Method extends Scope {
         String arguments = getInfo("arguments");
         arguments = arguments.substring(1, arguments.length()-1).trim();
         String[] splitted = arguments.split(",");
-        // System.out.println(arguments);
         for (String argument: splitted) {
             if (argument.isEmpty() && splitted.length != 1) throw new BadArgumentsNum(this.name);
             else if (argument.isEmpty()) return;
-            // System.out.println("// checking argument " + argument.trim()+ " //");
             Variable variable =  new Variable(argument.trim(), true, this);
             this.arguments.put(variable.getName(), variable);
         }
@@ -102,7 +93,6 @@ public class Method extends Scope {
                 .matcher(name).find()) {
             throw new BadMethodNameSavedKeyword(name);
         }
-
     }
 
     /**

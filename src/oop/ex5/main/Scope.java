@@ -14,12 +14,15 @@ import java.util.regex.PatternSyntaxException;
  * This class represents a scope in the s-Java program. each instance
  * of this class is an individual scope (starts with a valid s-Java
  * code line with an opening bracket at its end, followed by a
- * single closing bracket). in this program, an instance of this class
+ * single closing bracket). In this program, an instance of this class
  * may be one of the three: a general scope, a method defined scope or a
  * condition (if/while) defined scope.
  */
 public class Scope {
 
+    /**
+     * A static variable which hold a reference to the program's global scope.
+     */
     public static Scope globalScope;
 
     /**
@@ -67,10 +70,6 @@ public class Scope {
     public Scope(List<String> scopeData, Scope outerScope, String name) {
         this.name = name;
         if (this.name.equals("Global Scope")) Scope.globalScope = this;
-//        System.out.println("----------------");
-//        for (String line: scopeData) {
-//            System.out.println(line); }
-//        System.out.println("----------------\n");
         this.length = scopeData.size();
         this.rawData = scopeData;
         this.outerScope = outerScope;
@@ -87,7 +86,6 @@ public class Scope {
      * @throws VariableError If there is Variable error.
      */
     protected void scan() throws ScopeError, MethodError, VariableError {
-//        System.out.println("// CURRENTLY SCANNING SCOPE ***" + this.getName() + "*** //\n");
         int maxLineNum = this.rawData.size();
         String line;
         for (int lineNum = 0; lineNum < maxLineNum; lineNum++) {
@@ -120,8 +118,6 @@ public class Scope {
      */
     protected int scopeCreation(String line, int lineNum, int maxLineNum)
             throws ScopeError, MethodError, VariableError {
-        // System.out.println("// line ends with '{' //");
-
         Pattern pattern1 = Pattern.compile("^\\s*(if|while)(\\s*)*\\(.*\\)\\s*");
         Pattern pattern2 = Pattern.compile("^\\s*(\\w+)(\\s+)(\\w+)\\s*\\(.*\\)\\s*");
 
@@ -132,7 +128,7 @@ public class Scope {
         // if/while statement
         if (matcher1.find()) {
             // System.out.println("// creates new if/while scope //");
-            int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "ifWhile", line);
+            int innerScopeSize = scopeCreationAUX(lineNum,"ifWhile", line);
             // System.out.println("// if/while scope's size is : "+ innerScopeSize + "//\n");
             return innerScopeSize;
         }
@@ -143,7 +139,7 @@ public class Scope {
                     throw new InvalidMethodCreation(matcher2.group(3));
                 }
                 // System.out.println("// creates new method scope //");
-                int innerScopeSize = scopeCreationAUX(lineNum, maxLineNum, "method", matcher2.group(3));
+                int innerScopeSize = scopeCreationAUX(lineNum, "method", matcher2.group(3));
                 // System.out.println("// method's size is : "+ innerScopeSize + "//\n");
                 return innerScopeSize;
             } else throw new BadMethodType(matcher2.group(1));
@@ -160,16 +156,16 @@ public class Scope {
      * to the given type.
      * @param lineNum the number of the first line in this new declared scope
      *                (with respect to the original scope line counter).
-     * @param maxLineNum the number of the last line in the original scope.
      * @param type "method" or "ifWhile" - to determine the new Class's identity.
+     * @param name the scope's name.
      * @return the new scope's size (the number of lines in it).
      * @throws ScopeError If there is Scope error.
      * @throws MethodError If there is Method error.
      * @throws VariableError If there is Variable error.
      */
-    protected int scopeCreationAUX(int lineNum, int maxLineNum, String type, String name)
+    protected int scopeCreationAUX(int lineNum, String type, String name)
             throws ScopeError, MethodError, VariableError {
-        int innerScopeSize = findInnerScopeSize(lineNum, maxLineNum);
+        int innerScopeSize = findInnerScopeSize(lineNum);
         List<String> innerScopeData = new ArrayList<>();
         // -1 for not including the closing bracket
         for (int i = lineNum; i < innerScopeSize + lineNum - 1; i++) {
@@ -200,19 +196,18 @@ public class Scope {
      * @throws VariableError Possible when trying to declare or assign a variable.
      * @throws InvalidCommand If there is an invalid command in one of the scope lines.
      * @throws InvalidMethodCall If a method is called not from the global scope.
+     * @throws InvalidSyntax In case of an invalid s-Java syntax.
      */
     public void singleLineCommand(String line) throws VariableError, InvalidCommand, InvalidMethodCall, InvalidSyntax {
         String trimmedLine = line.trim();
         trimmedLine = trimmedLine.substring(0,trimmedLine.length()-1);
         // New Variable declarations
         if (possibleVariableDeclaration(trimmedLine)) {
-            // System.out.println("// creates new variables //");
             declareNewVariables(trimmedLine);
         }
         // A Method call
         else if (possibleMethodCall(line)) {
             if (!callFromMethod()) throw new InvalidMethodCall(line);
-            // System.out.println("// added a new possible call //");
             CallsHandler.addCall(line);
         }
         // A return statement
@@ -220,7 +215,6 @@ public class Scope {
         }
         // A Variable assignments
         else {
-//             System.out.println("// assign variables //");
             assignExistingVariable(trimmedLine);
         }
     }
@@ -237,6 +231,7 @@ public class Scope {
         }
         return false;
     }
+
     /**
      * Checks if the given line is a valid s-Java return statement line.
      * @param line The line to be checked.
@@ -297,7 +292,6 @@ public class Scope {
                 }
                 if (callFromMethod()) {
                 GlobalVariablesChecker.addAssigment(possibleAssignment); }
-                // System.out.println("// Global variable added //"); }
                 else throw new VariableDoesNotExist(matcher.group(1));
             } else
                 throw new InvalidCommand(line);
@@ -309,7 +303,6 @@ public class Scope {
      * Tries to create new variables.
      * @param line The line to be checked.
      * @throws VariableError If one of the possible deceleration fails.
-     *todo:ff
      */
     private void declareNewVariables(String line) throws VariableError, InvalidSyntax {
         String configStr = "";
@@ -340,11 +333,10 @@ public class Scope {
      * of the scope.
      * @param lineNum the number of the first line in this new declared scope
      *                (with respect to the original scope line counter).
-     * @param maxLineNum the number of the last line in the original scope.
      * @return the size of the scope (the number of lines in it).
      * @throws BadBracketsStructure If there is a bad brackets structure.
      */
-    protected int findInnerScopeSize(int lineNum, int maxLineNum) throws BadBracketsStructure {
+    protected int findInnerScopeSize(int lineNum) throws BadBracketsStructure {
         int scopeSize = 1;
         int openBracketsNum = 1;
         int closedBracketsNum = 0;
@@ -374,4 +366,3 @@ public class Scope {
     }
 }
 
-//TODO: is maxLineNum is necessary? looks like it is never used!

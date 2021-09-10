@@ -10,12 +10,12 @@ import java.util.regex.Pattern;
 public class Variable {
 
     /**
-     * All the current existing variables n the program sorted in a HashMap <name, Variable objects>.
+     * All the current existing variables n the program sorted in a HashMap (name, Variable objects).
      */
     public static HashMap<String, Variable> existingVariables = new HashMap<>();
 
     /**
-     * All the current existing arguments in the program sorted in a HashMap <name, Variable objects>.
+     * All the current existing arguments in the program sorted in a HashMap (name, Variable objects).
      */
     public static HashMap<String, Variable> existingArguments = new HashMap<>();
 
@@ -142,9 +142,9 @@ public class Variable {
 
     /**
      * The Contractor of the Variable.
-     *
      * @param initializeLine The initializing line (trimmed!)
      * @param isArgument     True if this variable should is, else false.
+     * @param declaredScope The scope where the variable was declared.
      * @throws VariableError When the Variable declaration goes wrong.
      */
     public Variable(String initializeLine, boolean isArgument, Scope declaredScope) throws VariableError {
@@ -231,8 +231,10 @@ public class Variable {
 
     /**
      * Finds the data of the Variable
-     *
      * @param dataStr the data String.
+     * @param isFromCallsHandler If the method was called from the callsHandler class.
+     * @param initializeLine The initialization line of the variable.
+     * @param scope The scope from which the variable was created.
      * @return The matching Data class with the a data value.
      * @throws VariableError If the Variable data is invalid.
      */
@@ -240,10 +242,6 @@ public class Variable {
         // checks for an already existing variable or argument
         Variable existingVariable = getExistsInVariablesOrArguments(dataStr);
         if (existingVariable != null) {
-
-
-//            if (!existingVariable.isArgument && isFromCallsHandler && !existingVariable.isInitialized)
-//                throw new UninitializedParameter(existingVariable.getName());
 
             if (!existingVariable.isArgument &&
                     (!existingVariable.isInitialized || !initializedInOuterScope(existingVariable, scope, isFromCallsHandler)))
@@ -287,6 +285,16 @@ public class Variable {
         return null;
     }
 
+    /**
+     * This method checks if the given variable was initialized in the given scope, or
+     * an ancient scope of his.
+     * @param variable The variable to be checked.
+     * @param scope The scope from which the variable was assigned.
+     * @param isFromCallsHandler A boolean arguments which indicates whether the call to this method
+     *                           was form the CallHandler class.
+     * @return True in case the variable was initialized in an outer scope of the scope given, false
+     * otherwise.
+     */
     private boolean initializedInOuterScope(Variable variable, Scope scope, boolean isFromCallsHandler){
         if (isFromCallsHandler) return true;
         while (scope != null){
@@ -294,10 +302,17 @@ public class Variable {
             else scope = scope.outerScope;
         }
         return false;
-
-
     }
 
+    /**
+     * This method returns a reference to a Variable with a key equals to the
+     * given String. The Variable returned may be a variable, an argument, or a null
+     * pointer in case no variable or argument with a key equals to the given String was
+     * found.
+     * @param dataStr A String of the desired Variable key.
+     * @return A reference to the desired variable, or a null pointer in case no
+     * matching varible was found.
+     */
     private Variable getExistsInVariablesOrArguments(String dataStr) {
         if (existingVariables.containsKey(dataStr)) {
             return existingVariables.get(dataStr);
@@ -307,9 +322,9 @@ public class Variable {
 
     /**
      * Sets the Variable data to the given data.
-     *
      * @param dataStr            The new Variable Data as a String.
      * @param isFromCallsHandler True if the setData method is called from the CallsHandler, else false.
+     * @param scope The scope from which the variable was created.
      * @throws VariableError If the Variable data is invalid.
      */
     public void setData(String dataStr, boolean isFromCallsHandler, Scope scope) throws VariableError {

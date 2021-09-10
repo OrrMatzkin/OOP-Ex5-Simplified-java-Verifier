@@ -1,13 +1,22 @@
 package oop.ex5.main;
 
 import java.io.FileNotFoundException;
-import java.io.IOError;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
+/**
+ * This class operates the entire Simplified Java Verifier program.
+ * It contains the main method of the program, so by using the command
+ * 'java oop.ex5.main.Sjavac source file name' (in the CMD), the
+ * verifier will start running.
+ */
 public class Sjavac {
-    public static void main(String[] args) {
 
+    /**
+     * The main method of the program.
+     * @param args The arguments given in the CMD, in order to run the program.
+     */
+    public static void main(String[] args) {
         try {
             if (args.length < 1) throw new IllegalArgumentException("Missing s-Java file name.");
             else if (args.length > 1) throw new IllegalArgumentException("Too many arguments.");
@@ -43,9 +52,7 @@ public class Sjavac {
             GlobalVariablesChecker.globalVariablesCondition.clear();
             Scope.globalScope = null;
         }
-
         System.out.println("0");
-
     }
 
     /**

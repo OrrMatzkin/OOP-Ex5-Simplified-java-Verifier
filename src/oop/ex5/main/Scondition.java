@@ -16,12 +16,17 @@ public class Scondition extends Scope {
      */
     private final String declaration;
 
-
+    /**
+     * A list of Strings, which holds the condition/s of the if/while scope.
+     * The list's size is greater than one in case of a multiple conditions
+     * String condition (when using the '||' or the '&&' operands).
+     */
     private List<String> conditions = new ArrayList<>();
 
 
     /**
      * the Scondition Class constructor.
+     * @param name the scope's name.
      * @param scopeData the scope's code lines.
      * @param outerScope a scope instance from which this constructor was called.
      * @throws ScopeError If there is Scope error.
@@ -35,7 +40,6 @@ public class Scondition extends Scope {
         // in order to avoid an infinite loop while scanning the scope's
         // data, we have to remove it's first line (the declaration of the scope)
         this.rawData.remove(0);
-
         extractCondition();
         checkConditionValidity(this.conditions);
         if (!this.rawData.isEmpty()) scan();
@@ -51,7 +55,6 @@ public class Scondition extends Scope {
         Matcher matcher = pattern.matcher(this.declaration.substring(0, this.declaration.length()-1).trim());
         matcher.find();
         String condition = matcher.group(3).trim();
-        // System.out.println("// condition is: " + condition + " //\n");
         if (condition.isEmpty()) throw new MissingCondition();
         checkMultipleCondition(condition);
     }
@@ -65,9 +68,7 @@ public class Scondition extends Scope {
     private void checkMultipleCondition(String condition) throws EmptyCondition{
 
         if (condition.contains("||") || condition.contains("&&")) splitCondition(condition);
-        else
-            this.conditions.add(condition);
-
+        else this.conditions.add(condition);
     }
 
 
@@ -81,7 +82,6 @@ public class Scondition extends Scope {
         String[] splitted = condition.split("\\|\\||\\&\\&");
         // check if all conditions are valid
         for (String splitCondition: splitted) {
-            // System.out.println("splitted " + splitCondition);
             if (splitCondition.trim().isEmpty()) throw new EmptyCondition();
             this.conditions.add(splitCondition);
         }
@@ -90,14 +90,14 @@ public class Scondition extends Scope {
 
     /**
      * Checks if the condition is valid.
+     * @param conditions The conditions to be checked.
      * @throws InvalidConditionException If the condition is invalid
      * @throws VariableDoesNotExist If the variable in the condition does not exist.
-     * @throws MissingCondition If the condition is missing (an empty string).
+     * @throws UninitializedVariable If the variable in the condition is uninitialized.
      */
-    public void checkConditionValidity(List<String> conditions) throws InvalidConditionException, VariableDoesNotExist, MissingCondition, UninitializedVariable {
+    public void checkConditionValidity(List<String> conditions) throws InvalidConditionException, VariableDoesNotExist, UninitializedVariable {
         for (String condition: conditions) {
             condition = condition.trim();
-
             if (!checkBooleanReservedWord(condition) && !checkVariableType(condition) &&
                     !checkStringCondition(condition)) {
                 if (!checkVariableType(condition) && callFromMethod()) {
@@ -121,9 +121,9 @@ public class Scondition extends Scope {
      * Checks if the given string variable name is an existing int or double variable.
      * @param variable The string varaible name.
      * @return True if the existing variable is an int or a double
-     * @throws VariableDoesNotExist If the varible does not exist.
+     * @throws UninitializedVariable If the variable in the condition is uninitialized.
      */
-    public boolean checkVariableType(String variable) throws VariableDoesNotExist, UninitializedVariable {
+    public boolean checkVariableType(String variable) throws UninitializedVariable {
         if (Variable.existingVariables.containsKey(variable)) {
             if (!Variable.existingVariables.get(variable).isInitialized())
                 throw new UninitializedVariable(variable);
@@ -182,10 +182,8 @@ public class Scondition extends Scope {
         intVar.delete();
         doubleVar.delete();
         booleanVar.delete();
-
         // if one if the data set is valid (true) it will return true;
         return checkArr[0] || checkArr[1] || checkArr[2];
     }
-
 
 }
