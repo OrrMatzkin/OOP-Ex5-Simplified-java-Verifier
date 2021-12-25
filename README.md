@@ -3,7 +3,7 @@
 
 This program was designed and created by Aviram Aloni and Orr Matzkin, as part of The Hebrew University of Jerusalem's *'Introduction to Object-Oriented Programming'* course.
 
-The verifier (s stands for simplified), performs a semantic analysis for the *s-Java* language (s stands for simplified), a critical phase of a comiler. It knows how to read s-Java code and determine its validity, but not to translate it to machine code.
+The verifier (s stands for simplified), performs a semantic analysis for the *s-Java* language (s stands for simplified), a critical phase of a compiler. It knows how to read s-Java code and determine its validity, but not to translate it to machine code.
 
 s-Java is a programing language, which only supports a very limited set of Java, all its features are described [below](#Table-of-Contents).
 
