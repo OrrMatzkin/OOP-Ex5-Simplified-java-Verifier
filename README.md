@@ -5,7 +5,7 @@ This program was designed and created by Aviram Aloni and Orr Matzkin, as part o
 
 The verifier (s stands for simplified), performs a semantic analysis for the *s-Java* language (s stands for simplified), a critical phase of a compiler. It knows how to read s-Java code and determine its validity, but not to translate it to machine code.
 
-s-Java is a programing language, which only supports a very limited set of Java, all its features are described [below](https://github.com/OrrMatzkin/OOP-Ex5-Simplified-java-Verifier/blob/main/s-Java-specifications.md).
+s-Java is a programing language, which only supports a very limited set of Java, all its features are described [here](https://github.com/OrrMatzkin/OOP-Ex5-Simplified-java-Verifier/blob/main/s-Java-specifications.md).
 
 This exercise goals are:
 - Implementing with the concepts of Regular Expressions.
@@ -42,6 +42,20 @@ Start the analysis for a specific sjava file , run the   sjavac file from the oo
  java oop.ex5.main.Sjavac <source-file-name>
 ```
 The output of the program is a single digit:
- - 0 – if the code is legal.  
+- 0 – if the code is legal.  
 - 1 – if the code is illegal.  
 - 2 – in case of IO errors.
+
+## Documentation
+To open the *s-Java*  Verifier  Java documentation clone the project
+
+
+```bash
+ git clone https://github.com/OrrMatzkin/OOP-Ex5-Simplified-java-Verifier.git
+```
+Go to the documentation directory
+```bash
+ cd OOP-Ex5-Simplified-java-Verifier/documentation
+```
+
+open the `index.html` file with your web broswer.
