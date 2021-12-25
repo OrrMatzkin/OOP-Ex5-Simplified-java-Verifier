@@ -58,4 +58,4 @@ Go to the documentation directory
  cd OOP-Ex5-Simplified-java-Verifier/documentation
 ```
 
-open the `index.html` file with your web broswer.
+Open the `index.html` file with your web broswer.
